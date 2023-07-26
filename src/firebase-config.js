@@ -1,5 +1,7 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc } from "firebase/firestore";
+import { ref } from "firebase/database";
+import { getFirestore, doc } from "firebase/firestore";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAQq-J1pa3L5s98wLyqLS1Luwt9zScULqk",
@@ -13,6 +15,8 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 export const firestore = getFirestore(firebaseApp);
+export const database = getDatabase(firebaseApp);
 
 // Convinience Firestore refs
 export const sandboxDocRef = doc(firestore, "admin/sandbox");
+export const sandboxRTRef = ref(database, "sandbox/count");
