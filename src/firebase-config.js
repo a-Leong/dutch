@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, collection, doc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAQq-J1pa3L5s98wLyqLS1Luwt9zScULqk",
@@ -11,6 +11,8 @@ const firebaseConfig = {
   measurementId: "G-J0K8YWTX23",
 };
 
-const app = initializeApp(firebaseConfig);
+export const firebaseApp = initializeApp(firebaseConfig);
+export const firestore = getFirestore(firebaseApp);
 
-export const firestore = getFirestore();
+// Convinience Firestore refs
+export const sandboxDocRef = doc(firestore, "admin/sandbox");
