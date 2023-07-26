@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "checkJs": true,
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "outDir": "./" // Dummy value since there is no actual transpilation step
+  },
+
+  "include": ["src/**/*.vue", "src/**/*.js"],
+  "exclude": ["node_modules", "**/node_modules/*"]
+}
