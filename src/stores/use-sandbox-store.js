@@ -1,19 +1,27 @@
 import { defineStore } from "pinia";
 import { useDocument, useDatabaseObject } from "vuefire";
-import { updateDoc } from "firebase/firestore";
-import { set } from "firebase/database";
+import { doc as firestoreDoc, updateDoc } from "firebase/firestore";
+import { ref as databaseRef, set } from "firebase/database";
 
-import { sandboxDocRef, sandboxRTRef } from "@/firebase-config";
+import { database, firestore } from "@/firebase-config";
 
 export const useSandboxStore = defineStore("sandbox", () => {
   //
   // Firestore
   //
 
+  const sandboxDocRef = firestoreDoc(firestore, "admin/sandbox");
   const doc = /** @type {import("@/models/sandbox").SandboxFS} */ (
     useDocument(sandboxDocRef)
   );
 
+  /**
+   * Increment the `count` property on the Firestore sandbox doc if it has
+   * initialized.
+   *
+   * @returns A promise that resolves after the doc has been updated, or
+   * immediately if the doc is still pending
+   */
   async function incrementDocCount() {
     if (doc.pending.value) return;
 
@@ -25,15 +33,16 @@ export const useSandboxStore = defineStore("sandbox", () => {
   // RTDB
   //
 
+  const sandboxDbRef = databaseRef(database, "admin/sandbox");
   const dbObj = /** @type {import("@/models/sandbox").SandboxDB} */ (
-    useDatabaseObject(sandboxRTRef)
+    useDatabaseObject(sandboxDbRef)
   );
 
   async function incrementDbObjCount() {
     if (dbObj.pending.value) return;
 
     const prevCount = dbObj.value?.count ?? 0;
-    return set(sandboxRTRef, { count: prevCount + 1 });
+    return set(sandboxDbRef, { count: prevCount + 1 });
   }
 
   return {
