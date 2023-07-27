@@ -10,7 +10,7 @@ export const useSandboxStore = defineStore("sandbox", () => {
   // Firestore
   //
 
-  const doc = /** @type {import('@/models/sandbox').SandboxFS} */ (
+  const doc = /** @type {import("@/models/sandbox").SandboxFS} */ (
     useDocument(sandboxDocRef)
   );
 
@@ -25,7 +25,7 @@ export const useSandboxStore = defineStore("sandbox", () => {
   // RTDB
   //
 
-  const dbObj = /** @type {import('@/models/sandbox').SandboxDB} */ (
+  const dbObj = /** @type {import("@/models/sandbox").SandboxDB} */ (
     useDatabaseObject(sandboxRTRef)
   );
 
