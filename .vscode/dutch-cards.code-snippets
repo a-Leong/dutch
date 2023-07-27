@@ -1,0 +1,82 @@
+{
+  "dutch-cards-sfc": {
+    "scope": "vue",
+    "prefix": "sfc",
+    "body": [
+      "<script setup>",
+      "${0}",
+      "</script>",
+      "",
+      "<template>",
+      "\t",
+      "</template>",
+      "",
+      "<style scoped>",
+      "",
+      "</style>"
+    ],
+    "description": "Single File Component (Comp API) for dutch-cards"
+  },
+  "dutch-cards-script": {
+    "scope": "vue",
+    "prefix": "script",
+    "body": ["<scrip setup>", "${0}", "</script>"],
+    "description": "Script block (Comp API)"
+  },
+  "dutch-cards-template": {
+    "scope": "vue",
+    "prefix": "template",
+    "body": ["<template>", "\t${0}", "</template>"],
+    "description": "Template block"
+  },
+  "dutch-cards-style": {
+    "scope": "vue",
+    "prefix": "style",
+    "body": ["<style scoped>", "${0}", "</style>"],
+    "description": "Scoped CSS styles block for dutch-cards"
+  },
+  "dutch-cards-composable": {
+    "scope": "javascript",
+    "prefix": "composable",
+    "body": [
+      "import {} from 'vue'",
+      "",
+      "const debug = false",
+      "",
+      "export default function () {",
+      "\t${0}",
+      "",
+      "\treturn {",
+      "\t\t",
+      "\t}",
+      "}"
+    ],
+    "description": "Locally-scoped composable for dutch-cards"
+  },
+  "dutch-cards-composable-fn": {
+    "scope": "javascript",
+    "prefix": "function-composable",
+    "body": [
+      "function ${1}() {",
+      "\tif (debug) console.log('${1}')",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Debug-printing function for dutch-cards composables"
+  },
+  "dutch-cards-model": {
+    "scope": "typescript",
+    "prefix": "type",
+    "body": [
+      "import { DB, FS } from \"@/models/_utils\";",
+      "",
+      "export type ${1} = {",
+      "\t${0}",
+      "};",
+      "",
+      "export type ${1}DB = DB<${1}>;",
+      "export type ${1}FS = FS<${1}>;"
+    ],
+    "description": "Typescript model with automatic Vuefire helper types to facilitate JSDocs"
+  }
+}
