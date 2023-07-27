@@ -34,11 +34,6 @@
   },
 
   // ======
-  // JavaScript
-  // ======
-  "js/ts.implicitProjectConfig.checkJs": true,
-
-  // ======
   // HTML
   // ======
 
