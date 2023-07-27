@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 import { useDocument, useDatabaseObject } from "vuefire";
 import { updateDoc } from "firebase/firestore";
+import { set } from "firebase/database";
 
 import { sandboxDocRef, sandboxRTRef } from "@/firebase-config";
-import { set } from "firebase/database";
 
 export const useSandbox = defineStore("sandbox", () => {
   const sandboxDoc =
