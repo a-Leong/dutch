@@ -1,5 +1,5 @@
 <script setup>
-import { useSandbox } from "@/stores/use-sandbox";
+import { useSandboxStore } from "@/stores/use-sandbox-store";
 
 defineProps({
   msg: {
@@ -9,7 +9,7 @@ defineProps({
   },
 });
 
-const sandboxStore = useSandbox();
+const sandboxStore = useSandboxStore();
 </script>
 
 <template>
@@ -17,16 +17,15 @@ const sandboxStore = useSandbox();
 
   <div class="card">
     <button type="button" @click="sandboxStore.incrementDocCount()">
-      Firestore sandbox.count is {{ sandboxStore.sandboxDoc?.count }}
+      Firestore sandbox.count is {{ sandboxStore.doc?.count }}
     </button>
   </div>
 
   <div class="card">
-    <button type="button" @click="sandboxStore.incrementRTCount()">
-      RTDB sandbox.count is {{ sandboxStore.sandboxRTObject?.count }}
+    <button type="button" @click="sandboxStore.incrementDbObjCount()">
+      RTDB sandbox.count is {{ sandboxStore.dbObj?.count }}
     </button>
   </div>
 </template>
 
 <style scoped></style>
-@/stores/use-sandbox
