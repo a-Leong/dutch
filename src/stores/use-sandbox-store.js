@@ -1,11 +1,22 @@
 import { defineStore } from "pinia";
 import { useDocument, useDatabaseObject } from "vuefire";
-import { doc as firestoreDoc, updateDoc } from "firebase/firestore";
-import { ref as databaseRef, set } from "firebase/database";
+import { doc as firestoreDoc } from "firebase/firestore";
+import { ref as databaseRef } from "firebase/database";
 
 import { database, firestore } from "@/firebase-config";
 
 export const useSandboxStore = defineStore("sandbox", () => {
+  const ws = new WebSocket("wss://dutch-cards-server.fly.dev");
+  // const ws = new WebSocket("ws://localhost:3000");
+
+  ws.addEventListener("close", () =>
+    console.log("WebSocket connection closed")
+  );
+  ws.addEventListener("error", console.error);
+  ws.addEventListener("message", (data) =>
+    console.log("received: %s", data.data)
+  );
+
   //
   // Firestore
   //
@@ -15,18 +26,8 @@ export const useSandboxStore = defineStore("sandbox", () => {
     useDocument(sandboxDocRef)
   );
 
-  /**
-   * Increment the `count` property on the Firestore sandbox doc if it has
-   * initialized.
-   *
-   * @returns A promise that resolves after the doc has been updated, or
-   * immediately if the doc is still pending
-   */
-  async function incrementDocCount() {
-    if (doc.pending.value) return;
-
-    const prevCount = doc.value?.count ?? 0;
-    return updateDoc(sandboxDocRef, { count: prevCount + 1 });
+  function incrementDocCount() {
+    ws.send("increment-doc-count");
   }
 
   //
@@ -38,11 +39,8 @@ export const useSandboxStore = defineStore("sandbox", () => {
     useDatabaseObject(sandboxDbRef)
   );
 
-  async function incrementDbObjCount() {
-    if (dbObj.pending.value) return;
-
-    const prevCount = dbObj.value?.count ?? 0;
-    return set(sandboxDbRef, { count: prevCount + 1 });
+  function incrementDbObjCount() {
+    ws.send("increment-db-obj-count");
   }
 
   return {
