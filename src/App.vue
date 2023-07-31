@@ -1,9 +1,9 @@
 <script setup>
-import HelloWorld from "@/components/HelloWorld.vue";
+import HomePage from "@/components/HomePage.vue";
 </script>
 
 <template>
-  <HelloWorld :msg="{ text: 'dutch.cards is under construction' }" />
+  <HomePage :msg="{ text: 'dutch.cards is under construction' }" />
 </template>
 
 <style scoped></style>
