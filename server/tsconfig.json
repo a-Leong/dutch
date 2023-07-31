@@ -3,18 +3,18 @@
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "checkJs": true,
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
-      "@/models/*": ["models/*"],
+      "@/models/*": ["../models/*"],
       "@/*": ["src/*"]
     },
-    "outDir": "dist",
-    "types": ["vite/client"]
+    "outDir": "dist"
   },
 
-  "include": ["src/**/*.vue", "src/**/*.js", "models/**/*.ts"],
+  "include": ["src/**/*.js", "../models/**/*.ts"],
   "exclude": ["node_modules", "**/node_modules/*"]
 }
