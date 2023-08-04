@@ -3,6 +3,7 @@ import { onMounted, onUnmounted } from "vue";
 
 import { useGameStore } from "@/stores/use-game-store";
 import { useSocketStore } from "@/stores/use-socket-store";
+import { auth } from "@/firebase-config";
 
 defineProps({
   msg: {
@@ -37,6 +38,10 @@ WebSocket: {{ socketStore.isConnected ? "connected" : "disconnected" }}</pre
       <button type="button" @click="gameStore.incrementDbObjCount()">
         RTDB sandbox.count is {{ gameStore.gameState?.dbObj?.count }}
       </button>
+    </div>
+
+    <div class="card">
+      <button type="button" @click="auth.signOut">sign out</button>
     </div>
   </div>
 </template>

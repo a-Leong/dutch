@@ -50,27 +50,29 @@ async function signIn() {
 
 <template>
   <div>
-    <label>email: </label>
-    <input v-model="signUpEmailInput" type="email" />
+    <div>
+      <label>email: </label>
+      <input v-model="signUpEmailInput" type="email" />
 
-    <label>password: </label>
-    <input v-model="signUpPasswordInput" type="password" />
+      <label>password: </label>
+      <input v-model="signUpPasswordInput" type="password" />
 
-    <button @click="signUp">sign up</button>
+      <button @click="signUp">sign up</button>
 
-    <pre class="error">{{ signUpError }}</pre>
-  </div>
+      <pre class="error">{{ signUpError }}</pre>
+    </div>
 
-  <div>
-    <label>email: </label>
-    <input v-model="signInEmailInput" type="email" />
+    <div>
+      <label>email: </label>
+      <input v-model="signInEmailInput" type="email" />
 
-    <label>password: </label>
-    <input v-model="signInPasswordInput" type="password" />
+      <label>password: </label>
+      <input v-model="signInPasswordInput" type="password" />
 
-    <button @click="signIn">sign in</button>
+      <button @click="signIn">sign in</button>
 
-    <pre class="error">{{ signInError }}</pre>
+      <pre class="error">{{ signInError }}</pre>
+    </div>
   </div>
 </template>
 
