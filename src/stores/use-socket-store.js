@@ -37,30 +37,37 @@ export const useSocketStore = defineStore("server-socket", () => {
   }
 
   /**
-   * @param {{ uid: string; reconnectResolver?: () => void; }} options
+   * @param {{ uid: string; reconnectResolver?: () => void; }} opts
    */
-  async function init(options) {
+  async function init(opts) {
     autoReconnect.value = true;
 
     return /** @type {Promise<void>} */ (
       new Promise((resolve) => {
         const wsUrl = new URL(import.meta.env.VITE_SERVER_ADDRESS);
-        wsUrl.searchParams.append("uid", options.uid);
-        ws.value = new WebSocket(import.meta.env.VITE_SERVER_ADDRESS);
+        wsUrl.searchParams.append("uid", opts.uid);
+        ws.value = new WebSocket(wsUrl);
         ws.value.addEventListener("open", () => {
           isConnected.value = true;
           stopReconnecting();
           resolve();
-          options.reconnectResolver?.();
+          opts.reconnectResolver?.();
         });
-        const onclose = (thisOptions, thisResolve) => {
+        const onclose = (thisOptions, thisResolve, response) => {
           isConnected.value = false;
-          const shouldReconnect = autoReconnect.value && !isReconnecting.value;
-          if (shouldReconnect) startReconnecting(thisOptions);
+          if (response.code === 3000) {
+            // Server told me request or auth UID was bad; stop retrying
+            console.error(response.reason);
+          } else {
+            // Server told me WebSocket closed normally; consider retrying
+            const shouldReconnect =
+              autoReconnect.value && !isReconnecting.value;
+            if (shouldReconnect) startReconnecting(thisOptions);
+          }
           if (thisOptions.reconnectResolver !== undefined) thisResolve();
         };
-        ws.value.addEventListener("close", () => onclose(options, resolve));
-        ws.value.addEventListener("error", () => onclose(options, resolve));
+        ws.value.addEventListener("close", (r) => onclose(opts, resolve, r));
+        ws.value.addEventListener("error", (r) => onclose(opts, resolve, r));
 
         ws.value.addEventListener("message", (message) => {
           /** @type {import("@/models/response").Response } */

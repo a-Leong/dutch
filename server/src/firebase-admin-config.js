@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getDatabase } from "firebase-admin/database";
 import admin from "firebase-admin";
@@ -15,5 +16,6 @@ const app = initializeApp({
   databaseURL: "https://dutch-cards-default-rtdb.firebaseio.com",
 });
 
+export const auth = getAuth(app);
 export const database = getDatabase(app);
 export const firestore = getFirestore(app);
