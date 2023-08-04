@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { readonly, ref } from "vue";
 
 import { useGameStore } from "@/stores/use-game-store";
+import { auth } from "@/firebase-config";
 
 export const useSocketStore = defineStore("server-socket", () => {
   /** @type {import("vue").Ref<WebSocket | undefined>} */
@@ -19,9 +20,9 @@ export const useSocketStore = defineStore("server-socket", () => {
    */
   function startReconnecting(options) {
     isReconnecting.value = true;
-    initSocket(options);
+    init(options);
     const nextReconnectDelay = 1.2 ** reconnectAttempts.value * 250; // Exp backoff
-    console.log("reconnecting", nextReconnectDelay);
+    console.log("reconnecting with new delay", nextReconnectDelay);
     reconnectAttempts.value++;
     timeoutId.value = setTimeout(
       () => startReconnecting(options),
@@ -38,7 +39,7 @@ export const useSocketStore = defineStore("server-socket", () => {
   /**
    * @param {{ uid: string; reconnectResolver?: () => void; }} options
    */
-  async function initSocket(options) {
+  async function init(options) {
     autoReconnect.value = true;
 
     return /** @type {Promise<void>} */ (
@@ -52,50 +53,50 @@ export const useSocketStore = defineStore("server-socket", () => {
           resolve();
           options.reconnectResolver?.();
         });
-        ws.value.addEventListener("close", () => {
+        const onclose = (thisOptions, thisResolve) => {
           isConnected.value = false;
-          autoReconnect.value &&
-            !isReconnecting.value &&
-            startReconnecting(options);
-          options.reconnectResolver && resolve();
-        });
-        ws.value.addEventListener("error", () => {
-          isConnected.value = false;
-          autoReconnect.value &&
-            !isReconnecting.value &&
-            startReconnecting(options);
-          options.reconnectResolver && resolve();
-        });
+          const shouldReconnect = autoReconnect.value && !isReconnecting.value;
+          if (shouldReconnect) startReconnecting(thisOptions);
+          if (thisOptions.reconnectResolver !== undefined) thisResolve();
+        };
+        ws.value.addEventListener("close", () => onclose(options, resolve));
+        ws.value.addEventListener("error", () => onclose(options, resolve));
 
         ws.value.addEventListener("message", (message) => {
           /** @type {import("@/models/response").Response } */
           const response = JSON.parse(message.data);
-
-          switch (response.id) {
-            case "init": {
-              const { setGameState } = useGameStore();
-              setGameState(response.gameState);
-              console.log(response);
-              break;
-            }
-            case "allow": {
-              const { setGameState } = useGameStore();
-              setGameState(response.gameState);
-              console.log(response);
-              break;
-            }
-            default: {
-              // Handle other responses
-              console.log(response);
-              break;
-            }
-          }
+          handleResponse(response);
         });
       })
     );
   }
 
-  function deinitSocket() {
+  /**
+   * @param {import("@/models/response").Response} response
+   */
+  function handleResponse(response) {
+    const gameStore = useGameStore();
+
+    switch (response.id) {
+      case "init": {
+        gameStore.set(response.gameState);
+        console.log(response);
+        break;
+      }
+      case "allow": {
+        gameStore.set(response.gameState);
+        console.log(response);
+        break;
+      }
+      default: {
+        // Handle other responses
+        console.log(response);
+        break;
+      }
+    }
+  }
+
+  function deinit() {
     autoReconnect.value = false;
     isConnected.value = false;
     ws.value?.close();
@@ -104,18 +105,25 @@ export const useSocketStore = defineStore("server-socket", () => {
 
   /**
    *
-   * @param {import("@/models/command").Command} cmd
+   * @param {import("@/models/game-state").ClientCommand['command']} command
    */
-  function sendCommand(cmd) {
-    const encodedCommand = JSON.stringify(cmd);
+  function sendCommand(command) {
+    if (auth.currentUser?.uid === undefined) {
+      throw "Unable to send command: unauthorized";
+    }
+
+    const encodedCommand = JSON.stringify({
+      player: auth.currentUser.uid,
+      command,
+    });
     ws.value?.send(encodedCommand);
   }
 
   return {
     isConnected: readonly(isConnected),
 
-    initSocket,
-    deinitSocket,
+    init,
+    deinit,
     sendCommand,
   };
 });

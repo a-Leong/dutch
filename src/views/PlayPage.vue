@@ -2,6 +2,7 @@
 import { useGameStore } from "@/stores/use-game-store";
 import { useSocketStore } from "@/stores/use-socket-store";
 import { auth } from "@/firebase-config";
+import { storeToRefs } from "pinia";
 
 defineProps({
   msg: {
@@ -11,29 +12,23 @@ defineProps({
 });
 
 const gameStore = useGameStore();
+const { game } = storeToRefs(gameStore);
+
 const socketStore = useSocketStore();
+const { sendCommand } = socketStore;
 </script>
 
 <template>
   <div>
-    <pre>
-WebSocket: {{ socketStore.isConnected ? "connected" : "disconnected" }}</pre
-    >
-    {{ gameStore.gameState }}
-
     <div class="card">
-      <button type="button" @click="gameStore.incrementDocCount()">
-        Firestore sandbox.count is {{ gameStore.gameState?.doc?.count }}
-      </button>
+      <pre>{{ game }}</pre>
     </div>
 
     <div class="card">
-      <button type="button" @click="gameStore.incrementDbObjCount()">
-        RTDB sandbox.count is {{ gameStore.gameState?.dbObj?.count }}
+      <p>Game Server Connection: {{ socketStore.isConnected ? "🟢" : "🔴" }}</p>
+      <button type="button" @click="sendCommand({ id: 'ready-to-play' })">
+        ready to play
       </button>
-    </div>
-
-    <div class="card">
       <button type="button" @click="auth.signOut">sign out</button>
     </div>
   </div>

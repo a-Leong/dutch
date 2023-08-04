@@ -1,4 +1,4 @@
-import { readonly, ref, toRaw } from "vue";
+import { reactive, readonly, toRaw } from "vue";
 import { defineStore } from "pinia";
 // import { useDocument, useDatabaseObject } from "vuefire";
 // import { doc as firestoreDoc } from "firebase/firestore";
@@ -6,27 +6,22 @@ import { defineStore } from "pinia";
 
 // import { database, firestore } from "@/firebase-config";
 
-import { useSocketStore } from "@/stores/use-socket-store";
-
 export const useGameStore = defineStore("game-state", () => {
-  const { sendCommand } = useSocketStore();
+  /**
+   * @typedef {import('@/models/game-state').ClientState} ClientState
+   * @type {Partial<ClientState>}
+   */
+  const game = reactive({});
 
-  const gameState = ref();
-
-  function init() {
-    sendCommand({ id: "init" });
+  /**
+   * @param {import('@/models/game-state').ClientState} newState
+   */
+  function set(newState) {
+    Object.assign(game, toRaw(newState));
   }
 
-  function incrementDocCount() {
-    sendCommand({ id: "increment-doc-count" });
-  }
-
-  function incrementDbObjCount() {
-    sendCommand({ id: "increment-db-obj-count" });
-  }
-
-  function setGameState(newState) {
-    gameState.value = toRaw(newState);
+  function deinit() {
+    Object.assign(game, {});
   }
 
   //
@@ -48,11 +43,9 @@ export const useGameStore = defineStore("game-state", () => {
   // );
 
   return {
-    gameState,
+    game: readonly(game),
 
-    init,
-    incrementDocCount,
-    incrementDbObjCount,
-    setGameState,
+    deinit,
+    set,
   };
 });

@@ -1,37 +1,20 @@
 import { WebSocketServer } from "ws";
 
 import useGameState from "./composables/use-game-state.js";
-import { sendAllow, sendInit } from "./utils/responses.js";
 
 const wss = new WebSocketServer({ port: 3000, host: "0.0.0.0" });
 
-const { gameState, init, incrementDocCount, incrementdbOjbCount } =
-  useGameState();
-
-await init();
-
 wss.on("connection", function connection(ws) {
-  sendInit(ws, { id: "init", gameState });
+  // Verify user has valid auth
+  // If reconnecting to existing game, send current state
 
   ws.on("error", console.error);
   ws.on("message", async (message) => {
     try {
-      /** @type {import("@/models/command.js").Command} */
-      const { id } = JSON.parse(message.toString());
-
-      switch (id) {
-        case "increment-doc-count": {
-          incrementDocCount();
-          sendAllow(ws, { id: "allow", gameState: gameState, action: id });
-          break;
-        }
-
-        case "increment-db-obj-count": {
-          incrementdbOjbCount();
-          sendAllow(ws, { id: "allow", gameState: gameState, action: id });
-          break;
-        }
-      }
+      /** @type {import("@/models/game-state.js").ClientCommand} */
+      const clientCommand = JSON.parse(message.toString());
+      const { executeCommand } = useGameState();
+      executeCommand(ws, clientCommand);
     } catch (error) {
       console.error(error);
     }
