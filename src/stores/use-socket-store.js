@@ -13,14 +13,18 @@ export const useSocketStore = defineStore("server-socket", () => {
 
   const reconnectAttempts = ref(0);
   const timeoutId = ref();
-  function startReconnecting(resolver) {
+
+  /**
+   * @param {{ uid: string; reconnectResolver?: () => void; }} options
+   */
+  function startReconnecting(options) {
     isReconnecting.value = true;
-    initSocket(resolver);
+    initSocket(options);
     const nextReconnectDelay = 1.2 ** reconnectAttempts.value * 250; // Exp backoff
     console.log("reconnecting", nextReconnectDelay);
     reconnectAttempts.value++;
     timeoutId.value = setTimeout(
-      () => startReconnecting(resolver),
+      () => startReconnecting(options),
       nextReconnectDelay
     );
   }
@@ -31,31 +35,36 @@ export const useSocketStore = defineStore("server-socket", () => {
     reconnectAttempts.value = 0;
   }
 
-  async function initSocket(reconnectResolver) {
+  /**
+   * @param {{ uid: string; reconnectResolver?: () => void; }} options
+   */
+  async function initSocket(options) {
     autoReconnect.value = true;
 
     return /** @type {Promise<void>} */ (
       new Promise((resolve) => {
+        const wsUrl = new URL(import.meta.env.VITE_SERVER_ADDRESS);
+        wsUrl.searchParams.append("uid", options.uid);
         ws.value = new WebSocket(import.meta.env.VITE_SERVER_ADDRESS);
         ws.value.addEventListener("open", () => {
           isConnected.value = true;
           stopReconnecting();
           resolve();
-          reconnectResolver?.();
+          options.reconnectResolver?.();
         });
         ws.value.addEventListener("close", () => {
           isConnected.value = false;
           autoReconnect.value &&
             !isReconnecting.value &&
-            startReconnecting(resolve);
-          reconnectResolver && resolve();
+            startReconnecting(options);
+          options.reconnectResolver && resolve();
         });
         ws.value.addEventListener("error", () => {
           isConnected.value = false;
           autoReconnect.value &&
             !isReconnecting.value &&
-            startReconnecting(resolve);
-          reconnectResolver && resolve();
+            startReconnecting(options);
+          options.reconnectResolver && resolve();
         });
 
         ws.value.addEventListener("message", (message) => {

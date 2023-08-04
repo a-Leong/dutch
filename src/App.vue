@@ -7,6 +7,7 @@ import router from "@/router";
 import { auth } from "@/firebase-config";
 
 import AppLoadingPage from "@/components/AppLoadingPage.vue";
+import { useSocketStore } from "@/stores/use-socket-store";
 
 import { wait } from "@/utils/wait";
 
@@ -15,9 +16,14 @@ const isLoading = ref(true);
 onAuthStateChanged(auth, async (user) => {
   await router.isReady();
 
+  const socketStore = useSocketStore();
   if (user) {
+    // User has existing auth session or just signed in
+    await socketStore.initSocket({ uid: user.uid });
     await router.push({ name: "PlayPage" });
   } else {
+    // User does not have existing auth session or just signed out
+    socketStore.deinitSocket();
     await router.push({ name: "LoginPage" });
   }
 

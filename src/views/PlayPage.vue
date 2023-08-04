@@ -1,6 +1,4 @@
 <script setup>
-import { onMounted, onUnmounted } from "vue";
-
 import { useGameStore } from "@/stores/use-game-store";
 import { useSocketStore } from "@/stores/use-socket-store";
 import { auth } from "@/firebase-config";
@@ -14,11 +12,6 @@ defineProps({
 
 const gameStore = useGameStore();
 const socketStore = useSocketStore();
-
-onMounted(async () => {
-  await socketStore.initSocket();
-});
-onUnmounted(() => socketStore.deinitSocket());
 </script>
 
 <template>
