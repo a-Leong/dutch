@@ -4,7 +4,7 @@ import { readonly, ref } from "vue";
 import { useGameStore } from "@/stores/use-game-store";
 import router from "@/router";
 
-const SERVER_RECONNECT_TIMEOUT = 1000 * 5;
+const SERVER_RECONNECT_TIMEOUT = 1000 * 1;
 
 export const useSocketStore = defineStore("server-socket", () => {
   /** @type {import("vue").Ref<WebSocket | undefined>} */
@@ -34,7 +34,6 @@ export const useSocketStore = defineStore("server-socket", () => {
           msg: "Reconnecting to server doesn't seem to be working. Refresh to try again.",
         },
       });
-      console.log("ok");
       return initLoadResolver.value?.();
     }
     reconnectAttempts.value++;
