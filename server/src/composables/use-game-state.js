@@ -1,4 +1,5 @@
 import { computed, reactive } from "@vue/reactivity";
+import chalk from "chalk";
 
 import { generateDeck } from "../utils/deck.js";
 import { sendInit } from "../utils/responses.js";
@@ -186,10 +187,16 @@ export default function () {
 
       // Command succeeded
       gameState.commands.push({ player, command });
-      console.log(`🟢 ${player.substring(0, 4)}: ${JSON.stringify(command)}`);
+      console.log(
+        `🟢 ${chalk.yellow(player.substring(0, 4))}: ${JSON.stringify(command)}`
+      );
     } catch (error) {
       // Command rejected
-      console.log(`🚫 ${error.message}`);
+      console.log(
+        `🚫 ${chalk.yellow(player.substring(0, 4))}: ${JSON.stringify(
+          command
+        )} ${chalk.red(error.message)}`
+      );
     }
   }
 

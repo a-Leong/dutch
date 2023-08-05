@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { auth } from "@/firebase-config";
 
+export const ERROR_PATH = "/error";
 export const LOGIN_PATH = "/login";
 export const PLAY_PATH = "/play";
 
@@ -13,6 +14,11 @@ const routes = [
     path: LOGIN_PATH,
     name: "LoginPage",
     component: () => import("@/views/LoginPage.vue"),
+  },
+  {
+    path: ERROR_PATH,
+    name: "ErrorPage",
+    component: () => import("@/views/ErrorPage.vue"),
   },
   {
     path: PLAY_PATH,

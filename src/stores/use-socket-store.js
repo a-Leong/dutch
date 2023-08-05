@@ -2,11 +2,15 @@ import { defineStore } from "pinia";
 import { readonly, ref } from "vue";
 
 import { useGameStore } from "@/stores/use-game-store";
-import { auth } from "@/firebase-config";
+import router from "@/router";
+
+const SERVER_RECONNECT_TIMEOUT = 1000 * 5;
 
 export const useSocketStore = defineStore("server-socket", () => {
   /** @type {import("vue").Ref<WebSocket | undefined>} */
   const ws = ref();
+
+  const initLoadResolver = ref();
 
   const isConnected = ref();
   const autoReconnect = ref(false);
@@ -16,16 +20,26 @@ export const useSocketStore = defineStore("server-socket", () => {
   const timeoutId = ref();
 
   /**
-   * @param {{ uid: string; reconnectResolver?: () => void; }} options
+   * @param { string } token
    */
-  function startReconnecting(options) {
+  async function startReconnecting(token) {
     isReconnecting.value = true;
-    init(options);
+    init(token);
     const nextReconnectDelay = 1.2 ** reconnectAttempts.value * 250; // Exp backoff
-    console.log("reconnecting with new delay", nextReconnectDelay);
+    if (nextReconnectDelay > SERVER_RECONNECT_TIMEOUT) {
+      clearTimeout(timeoutId.value);
+      await router.push({
+        name: "ErrorPage",
+        query: {
+          msg: "Reconnecting to server doesn't seem to be working. Refresh to try again.",
+        },
+      });
+      console.log("ok");
+      return initLoadResolver.value?.();
+    }
     reconnectAttempts.value++;
     timeoutId.value = setTimeout(
-      () => startReconnecting(options),
+      () => startReconnecting(token),
       nextReconnectDelay
     );
   }
@@ -37,23 +51,25 @@ export const useSocketStore = defineStore("server-socket", () => {
   }
 
   /**
-   * @param {{ uid: string; reconnectResolver?: () => void; }} opts
+   * @param {string} token
    */
-  async function init(opts) {
+  async function init(token) {
     autoReconnect.value = true;
 
     return /** @type {Promise<void>} */ (
       new Promise((resolve) => {
+        if (initLoadResolver.value === undefined) {
+          initLoadResolver.value = resolve;
+        }
         const wsUrl = new URL(import.meta.env.VITE_SERVER_ADDRESS);
-        wsUrl.searchParams.append("uid", opts.uid);
+        wsUrl.searchParams.append("token", token);
         ws.value = new WebSocket(wsUrl);
         ws.value.addEventListener("open", () => {
           isConnected.value = true;
           stopReconnecting();
-          resolve();
-          opts.reconnectResolver?.();
+          initLoadResolver.value?.();
         });
-        const onclose = (thisOptions, thisResolve, response) => {
+        const onclose = (token, response) => {
           isConnected.value = false;
           if (response.code === 3000) {
             // Server told me request or auth UID was bad; stop retrying
@@ -62,12 +78,11 @@ export const useSocketStore = defineStore("server-socket", () => {
             // Server told me WebSocket closed normally; consider retrying
             const shouldReconnect =
               autoReconnect.value && !isReconnecting.value;
-            if (shouldReconnect) startReconnecting(thisOptions);
+            if (shouldReconnect) startReconnecting(token);
           }
-          if (thisOptions.reconnectResolver !== undefined) thisResolve();
         };
-        ws.value.addEventListener("close", (r) => onclose(opts, resolve, r));
-        ws.value.addEventListener("error", (r) => onclose(opts, resolve, r));
+        ws.value.addEventListener("close", (r) => onclose(token, r));
+        ws.value.addEventListener("error", (r) => onclose(token, r));
 
         ws.value.addEventListener("message", (message) => {
           /** @type {import("@/models/response").Response } */

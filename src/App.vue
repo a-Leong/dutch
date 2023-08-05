@@ -17,21 +17,31 @@ const isLoading = ref(true);
 onAuthStateChanged(auth, async (user) => {
   await router.isReady();
 
-  const gameStore = useGameStore();
-  const socketStore = useSocketStore();
-  if (user) {
-    // User has existing auth session or just signed in
-    await socketStore.init({ uid: user.uid });
-    await router.push({ name: "PlayPage" });
-  } else {
-    // User does not have existing auth session or just signed out
-    gameStore.deinit();
-    socketStore.deinit();
-    await router.push({ name: "LoginPage" });
-  }
+  try {
+    const gameStore = useGameStore();
+    const socketStore = useSocketStore();
 
-  await wait(0); // Add delay to increase loading page duration
-  isLoading.value = false;
+    if (user) {
+      // User has existing auth session or just signed in
+      const token = await user.getIdToken();
+      await router.push({ name: "PlayPage" });
+      await socketStore.init(token);
+    } else {
+      // User does not have existing auth session or just signed out
+      gameStore.deinit();
+      socketStore.deinit();
+      await router.push({ name: "LoginPage" });
+    }
+
+    await wait(0); // Add delay to increase loading page duration
+  } catch (error) {
+    await router.push({
+      name: "ErrorPage",
+      query: { msg: error.message },
+    });
+  } finally {
+    isLoading.value = false;
+  }
 });
 </script>
 
