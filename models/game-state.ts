@@ -51,6 +51,7 @@ export type Player = {
  * Server-only state encapsulating a game of dutch
  */
 export type GameState = {
+  phase: "pregame" | "game" | "postgame";
   activePlayerUid?: string;
   actionQueue: Action[]; // First in, first out
   cardMap: { [id: string]: Card };

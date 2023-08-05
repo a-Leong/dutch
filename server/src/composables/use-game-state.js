@@ -1,26 +1,41 @@
-import { reactive, readonly } from "@vue/reactivity";
+import { computed, reactive } from "@vue/reactivity";
 
+import { generateDeck } from "../utils/deck.js";
 import { sendInit } from "../utils/responses.js";
 
-const debug = false;
-
 /** @type {import("@/models/game-state").GameState} */
-const gameState = reactive({
+const initGameState = {
+  phase: "pregame",
   actionQueue: [],
   cardMap: {},
   discardPile: [],
-  drawPile: [{ id: "some random id", suit: "d", value: "a", pointValue: 1 }],
+  drawPile: [],
   players: {},
   commands: [],
+};
+
+const gameState = reactive({ ...initGameState });
+
+const playersArray = computed(() => {
+  return Object.keys(gameState.players)
+    .map((uid) => ({ ...gameState.players[uid], uid }))
+    .sort((a, b) => a.position - b.position);
 });
 
 export default function () {
+  /**
+   * @param {string} uid
+   */
   function addPlayer(uid) {
     // Add player to game
+    const position = playersArray.value.length;
+    const newPlayer = { name: `Player ${position + 1}`, position, hand: [] };
+    gameState.players = { ...gameState.players, [uid]: newPlayer };
   }
 
   /**
    * @returns {import('@/models/game-state').ClientState}
+   * @param {string} player
    */
   function evalClientState(player) {
     const discardPileCount = gameState.discardPile.length;
@@ -35,21 +50,59 @@ export default function () {
       count: drawPileCount,
     };
 
+    // TODO: set players' hands according to gameState
+    const players = gameState.players;
+
     const clientState = {
+      activePlayerUid: gameState.activePlayerUid,
       actionQueue: [],
       discardPile,
       drawPile,
-      players: {},
+      players,
     };
 
     return clientState;
   }
 
-  function startGame() {
+  /**
+   * @param {string | undefined} [startingPlayer]
+   */
+  function startGame(startingPlayer) {
     // Verify enough players
+    if (playersArray.value.length <= 1) {
+      throw new Error("Need at least two players to start game");
+    }
+
+    gameState.phase = "game";
+
     // Determine active player
+    const randomPlayer =
+      playersArray.value[(playersArray.value.length * Math.random()) | 0];
+    gameState.activePlayerUid = startingPlayer ?? randomPlayer.uid;
+
     // Shuffle and add cards to draw pile
-    // Deal cards to players, start discard pile
+    const { deck, cardMap } = generateDeck();
+    gameState.drawPile = deck;
+    gameState.cardMap = cardMap;
+
+    // Deal cards to players
+    const CARDS_PER_HAND = 4;
+    for (let i = 1; i <= CARDS_PER_HAND; i++) {
+      playersArray.value.forEach(({ uid }) => {
+        const card = gameState.drawPile.pop();
+        if (card === undefined) {
+          throw new Error("Overdraw from draw pile");
+        }
+        gameState.players[uid].hand.push(card);
+      });
+    }
+
+    // Start discard pile
+    const card = gameState.drawPile.pop();
+    if (card === undefined) {
+      throw new Error("Overdraw from draw pile");
+    }
+    gameState.discardPile.push(card);
   }
 
   /**
@@ -59,10 +112,32 @@ export default function () {
   function executeCommand(ws, { player, command }) {
     try {
       switch (command.id) {
+        case "connect-to-room": {
+          if (gameState.players[player] === undefined) {
+            if (gameState.phase === "pregame") {
+              // Add player to game
+              addPlayer(player);
+            } else {
+              // Add player to observers?
+            }
+          }
+
+          // TODO: broadcast state updates to all clients
+          const clientState = evalClientState(player);
+          sendInit(ws, { id: "init", gameState: clientState });
+
+          break;
+        }
         case "ready-to-play": {
           // TODO: If valid, process, else, throw error
-          // TODO: Eval all client states and send responses
+          if (gameState.phase === "game") {
+            throw new Error("Game has already started");
+          }
+
           startGame();
+
+          // TODO: Eval all client states and send responses
+          // TODO: broadcast state updates to all clients
           const clientState = evalClientState(player);
           sendInit(ws, { id: "init", gameState: clientState });
           break;
@@ -108,16 +183,17 @@ export default function () {
           break;
         }
       }
+
+      // Command succeeded
+      gameState.commands.push({ player, command });
+      console.log(`🟢 ${player.substring(0, 4)}: ${JSON.stringify(command)}`);
     } catch (error) {
-      // Reject command
+      // Command rejected
+      console.log(`🚫 ${error.message}`);
     }
   }
 
   return {
-    gameState: readonly(gameState),
-
-    addPlayer,
     executeCommand,
-    startGame,
   };
 }
