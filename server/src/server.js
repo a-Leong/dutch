@@ -12,25 +12,30 @@ wss.on("connection", async function connection(ws, req) {
     return;
   }
   const { query } = url.parse(req.url, true);
+  const { uid } = query;
 
-  if (typeof query.uid !== "string") {
+  if (typeof uid !== "string") {
     ws.close(3000, "malformed UID");
     return;
   }
 
   try {
     // Verify user has valid auth
-    await auth.getUser(query.uid);
+    await auth.getUser(uid);
 
     // If reconnecting to existing game, send current state
+    const { executeCommand } = useGameState();
+    executeCommand(ws, {
+      player: uid,
+      command: { id: "connect-to-room" },
+    });
 
     ws.on("error", console.error);
     ws.on("message", async (message) => {
       try {
-        /** @type {import("@/models/game-state.js").ClientCommand} */
-        const clientCommand = JSON.parse(message.toString());
-        const { executeCommand } = useGameState();
-        executeCommand(ws, clientCommand);
+        /** @type {import("@/models/game-state.js").ClientCommand['command']} */
+        const command = JSON.parse(message.toString());
+        executeCommand(ws, { player: uid, command });
       } catch (error) {
         console.error(error);
       }

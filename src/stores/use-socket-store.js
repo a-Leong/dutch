@@ -115,14 +115,7 @@ export const useSocketStore = defineStore("server-socket", () => {
    * @param {import("@/models/game-state").ClientCommand['command']} command
    */
   function sendCommand(command) {
-    if (auth.currentUser?.uid === undefined) {
-      throw "Unable to send command: unauthorized";
-    }
-
-    const encodedCommand = JSON.stringify({
-      player: auth.currentUser.uid,
-      command,
-    });
+    const encodedCommand = JSON.stringify(command);
     ws.value?.send(encodedCommand);
   }
 
