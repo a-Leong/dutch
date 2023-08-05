@@ -1,6 +1,7 @@
 export type ClientCommand = {
   player: string;
   command:
+    | { id: "connect-to-room" }
     | { id: "ready-to-play" }
     | { id: "restart-game" }
     | { id: "draw-draw-pile" }
@@ -29,7 +30,7 @@ export type Card = {
     | "j"
     | "q"
     | "k";
-  pointValue: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
+  pointValue: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 };
 
 export type FaceUpCard = Card;
