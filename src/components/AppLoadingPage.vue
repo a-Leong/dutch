@@ -10,15 +10,6 @@ h1 {
   left: 50%;
   transform: translate(-50%, -50%);
 
-  animation: fade-in-out 300ms linear alternate infinite;
-}
-
-@keyframes fade-in-out {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  animation: fade-in-out 400ms linear alternate infinite;
 }
 </style>

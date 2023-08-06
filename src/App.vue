@@ -71,4 +71,13 @@ pre {
 .fade-leave-to {
   opacity: 0;
 }
+
+@keyframes fade-in-out {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 </style>
