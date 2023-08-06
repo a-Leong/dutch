@@ -34,8 +34,8 @@ export type Card = {
   pointValue: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 };
 
-export type FaceUpCard = Card & { facing: "up" };
-export type FaceDownCard = Pick<Card, "id"> & { facing: "down" };
+export type FaceUpCard = Card & { orientation: "up" };
+export type FaceDownCard = Pick<Card, "id"> & { orientation: "down" };
 
 export type Action = {
   playerUid: string;

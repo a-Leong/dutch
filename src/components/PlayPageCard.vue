@@ -10,7 +10,7 @@ const props = defineProps({
 });
 
 const extendedCardName = computed(() => {
-  if (props.card.facing === "up") {
+  if (props.card.orientation === "up") {
     // Card is face up
     const { suit, value } = props.card;
 

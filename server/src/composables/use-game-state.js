@@ -65,7 +65,7 @@ export default function () {
    */
   function toFaceUp(card) {
     if (debug) console.log("toFaceUp", card);
-    return { ...gameState.cardMap[card.id], facing: "up" };
+    return { ...gameState.cardMap[card.id], orientation: "up" };
   }
 
   /**
@@ -74,7 +74,7 @@ export default function () {
    */
   function toFaceDown(card) {
     if (debug) console.log("toFaceDown", card);
-    return { id: card.id, facing: "down" };
+    return { id: card.id, orientation: "down" };
   }
 
   /**
@@ -88,7 +88,10 @@ export default function () {
     const discardPile = {
       topCard:
         discardPileCount > 0
-          ? { ...gameState.discardPile[discardPileCount - 1], facing: "up" }
+          ? {
+              ...gameState.discardPile[discardPileCount - 1],
+              orientation: "up",
+            }
           : undefined,
       count: discardPileCount,
     };
@@ -107,7 +110,7 @@ export default function () {
     // TODO: make cards face up or face down depending on player
     const players = playersArray.value.map((playerI) => {
       const hand = playerI.hand.map((card) => {
-        return card.facing === "up" ? toFaceUp(card) : toFaceDown(card);
+        return card.orientation === "up" ? toFaceUp(card) : toFaceDown(card);
       });
       return { ...playerI, hand };
     });
@@ -153,7 +156,7 @@ export default function () {
         if (card === undefined) {
           throw new Error("Overdraw from draw pile");
         }
-        gameState.players[uid].hand.push({ ...card, facing: "down" });
+        gameState.players[uid].hand.push({ ...card, orientation: "down" });
       });
     }
 
