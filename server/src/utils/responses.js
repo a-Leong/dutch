@@ -2,12 +2,12 @@
  * Sends allow message to client
  *
  * @param {import("ws").WebSocket} ws WebSocket instance
- * @param {import("@/models/response").InitResponse} data
+ * @param {import("@/models/response").UpdateResponse['gameState']} gameState
  */
-export async function sendInit(ws, data) {
+export async function sendUpdate(ws, gameState) {
   if (ws.readyState !== ws.OPEN) return;
 
-  const encodedData = JSON.stringify(data);
+  const encodedData = JSON.stringify({ id: "update", gameState });
   ws.send(encodedData);
 }
 

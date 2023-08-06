@@ -99,7 +99,7 @@ export const useSocketStore = defineStore("server-socket", () => {
     const gameStore = useGameStore();
 
     switch (response.id) {
-      case "init": {
+      case "update": {
         gameStore.set(response.gameState);
         console.log(response);
         break;
@@ -111,7 +111,7 @@ export const useSocketStore = defineStore("server-socket", () => {
       }
       default: {
         // Handle other responses
-        console.log(response);
+        console.log("Unhandled server message:", response);
         break;
       }
     }

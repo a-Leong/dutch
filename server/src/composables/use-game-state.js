@@ -2,7 +2,7 @@ import { computed, reactive } from "@vue/reactivity";
 import chalk from "chalk";
 
 import { generateDeck } from "../utils/deck.js";
-import { sendInit } from "../utils/responses.js";
+import { sendUpdate } from "../utils/responses.js";
 
 /** @type {import("@/models/game-state").GameState} */
 const initGameState = {
@@ -125,7 +125,7 @@ export default function () {
 
           // TODO: broadcast state updates to all clients
           const clientState = evalClientState(player);
-          sendInit(ws, { id: "init", gameState: clientState });
+          sendUpdate(ws, clientState);
 
           break;
         }
@@ -140,7 +140,7 @@ export default function () {
           // TODO: Eval all client states and send responses
           // TODO: broadcast state updates to all clients
           const clientState = evalClientState(player);
-          sendInit(ws, { id: "init", gameState: clientState });
+          sendUpdate(ws, clientState);
           break;
         }
         case "restart-game": {

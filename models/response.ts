@@ -1,7 +1,7 @@
 import { ClientState } from "./game-state";
 
-export type InitResponse = {
-  id: "init";
+export type UpdateResponse = {
+  id: "update";
   gameState: ClientState;
 };
 
@@ -19,4 +19,4 @@ export type RejectResponse = {
   commandId: string;
 };
 
-export type Response = InitResponse | AllowResponse | RejectResponse;
+export type Response = UpdateResponse | AllowResponse | RejectResponse;
