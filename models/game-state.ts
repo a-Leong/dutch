@@ -2,6 +2,7 @@ export type ClientCommand = {
   player: string;
   command:
     | { id: "connect-to-room" }
+    | { id: "disconnect-from-room" }
     | { id: "ready-to-play" }
     | { id: "restart-game" }
     | { id: "draw-draw-pile" }
@@ -33,8 +34,8 @@ export type Card = {
   pointValue: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 };
 
-export type FaceUpCard = Card;
-export type FaceDownCard = Pick<Card, "id">;
+export type FaceUpCard = Card & { facing: "up" };
+export type FaceDownCard = Pick<Card, "id"> & { facing: "down" };
 
 export type Action = {
   playerUid: string;
@@ -42,8 +43,8 @@ export type Action = {
 };
 
 export type Player = {
+  isOnline: boolean;
   position: number; // ∈ [0 .. players.length - 1]
-  name: string;
   hand: (FaceUpCard | FaceDownCard)[];
 };
 
@@ -51,7 +52,7 @@ export type Player = {
  * Server-only state encapsulating a game of dutch
  */
 export type GameState = {
-  phase: "pregame" | "game" | "postgame";
+  phase: "pregame" | "ingame" | "postgame";
   activePlayerUid?: string;
   actionQueue: Action[]; // First in, first out
   cardMap: { [id: string]: Card };
@@ -66,6 +67,7 @@ export type GameState = {
  * Client-accessible, player-specific state necessary for rendering UI
  */
 export type ClientState = {
+  phase: "pregame" | "ingame" | "postgame";
   activePlayerUid?: string;
   actionQueue: Action[]; // First in, first out
   discardPile: {
@@ -77,6 +79,6 @@ export type ClientState = {
     count: number;
   };
   dutchCalledBy?: string; // player UID
-  players: { [uid: string]: Player };
+  players: (Player & { uid: string })[];
   prevCommand?: ClientCommand; // To facilitate UI ? maybe not needed
 };

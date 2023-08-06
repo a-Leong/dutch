@@ -5,18 +5,10 @@ export type UpdateResponse = {
   gameState: ClientState;
 };
 
-export type AllowResponse = {
-  id: "allow" | "allow-something-else";
-  commandSuccessful: true;
-  gameState: ClientState;
-  commandId: string;
-};
-
 export type RejectResponse = {
-  id: "reject" | "reject-something-else";
-  commandSuccessful: false;
-  reason: "outOfTurn" | "ineligibleAction";
+  id: "reject";
+  reason: string;
   commandId: string;
 };
 
-export type Response = UpdateResponse | AllowResponse | RejectResponse;
+export type Response = UpdateResponse | RejectResponse;

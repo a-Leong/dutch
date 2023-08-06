@@ -33,6 +33,7 @@ const { query } = useRoute();
       <path fill="none" d="M0 0h36v36H0z" />
     </svg>
     <pre>{{ query.msg }}</pre>
+    <pre>Refresh to try again.</pre>
   </div>
 </template>
 

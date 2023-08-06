@@ -4,7 +4,7 @@ import { readonly, ref } from "vue";
 import { useGameStore } from "@/stores/use-game-store";
 import router from "@/router";
 
-const SERVER_RECONNECT_TIMEOUT = 1000 * 1;
+const SERVER_RECONNECT_TIMEOUT = 1000 * 2;
 
 export const useSocketStore = defineStore("server-socket", () => {
   /** @type {import("vue").Ref<WebSocket | undefined>} */
@@ -31,7 +31,7 @@ export const useSocketStore = defineStore("server-socket", () => {
       await router.push({
         name: "ErrorPage",
         query: {
-          msg: "Reconnecting to server doesn't seem to be working. Refresh to try again.",
+          msg: "Timeout: server appears to be unavailable.",
         },
       });
       return initLoadResolver.value?.();
@@ -70,9 +70,12 @@ export const useSocketStore = defineStore("server-socket", () => {
         });
         const onclose = (token, response) => {
           isConnected.value = false;
-          if (response.code === 3000) {
+          if (response.code === 3000 || response.code === 3001) {
             // Server told me request or auth UID was bad; stop retrying
-            console.error(response.reason);
+            router.push({
+              name: "ErrorPage",
+              query: { msg: response.reason },
+            });
           } else {
             // Server told me WebSocket closed normally; consider retrying
             const shouldReconnect =
@@ -101,17 +104,17 @@ export const useSocketStore = defineStore("server-socket", () => {
     switch (response.id) {
       case "update": {
         gameStore.set(response.gameState);
-        console.log(response);
+        console.log("Server says:", response);
         break;
       }
-      case "allow": {
-        gameStore.set(response.gameState);
-        console.log(response);
+      case "reject": {
+        // TODO: Display command rejected somehow?
+        console.warn("Server says:", response);
         break;
       }
       default: {
         // Handle other responses
-        console.log("Unhandled server message:", response);
+        console.log("Server says (unhandled):", response);
         break;
       }
     }
