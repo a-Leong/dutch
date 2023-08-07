@@ -4,7 +4,7 @@ export type ClientCommand = {
     | { id: "connect-to-room" }
     | { id: "disconnect-from-room" }
     | { id: "toggle-ready" }
-    | { id: "restart-game" }
+    | { id: "toggle-restart" }
     | { id: "draw-draw-pile" }
     | { id: "draw-discard-pile" }
     | { id: "replace-discard"; cardId: string }
@@ -43,7 +43,7 @@ export type Action = {
 };
 
 export type Player = {
-  status: "waiting" | "ready";
+  status: "wait" | "play" | "restart";
   isOnline: boolean;
   position: number; // ∈ [0 .. players.length - 1]
   hand: (FaceUpCard | FaceDownCard)[];
@@ -54,6 +54,7 @@ export type Player = {
  */
 export type GameState = {
   phase: "pregame" | "ingame" | "postgame";
+  startingPlayer?: string;
   activePlayerUid?: string;
   actionQueue: Action[]; // First in, first out
   cardMap: { [id: string]: Card };

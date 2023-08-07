@@ -66,6 +66,10 @@ const { sendCommand } = socketStore;
       <button type="button" @click="sendCommand({ id: 'toggle-ready' })">
         toggle ready
       </button>
+
+      <button type="button" @click="sendCommand({ id: 'toggle-restart' })">
+        toggle restart
+      </button>
     </section>
 
     <section>

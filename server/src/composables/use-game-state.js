@@ -36,7 +36,7 @@ export default function () {
 
     /** @type {import("@/models/game-state").Player} */
     const newPlayer = {
-      status: "waiting",
+      status: "wait",
       position,
       hand: [],
       isOnline: true,
@@ -131,7 +131,7 @@ export default function () {
   }
 
   /**
-   * @param {string | undefined} [startingPlayer]
+   * @param {string?} [startingPlayer]
    */
   function startGame(startingPlayer) {
     // Verify enough players
@@ -144,7 +144,7 @@ export default function () {
     // Determine active player
     const randomPlayer =
       playersArray.value[(playersArray.value.length * Math.random()) | 0];
-    gameState.activePlayerUid = startingPlayer ?? randomPlayer.uid;
+    gameState.startingPlayer = startingPlayer ?? randomPlayer.uid;
 
     // Shuffle and add cards to draw pile
     const { deck, cardMap } = generateDeck();
@@ -169,6 +169,33 @@ export default function () {
       throw new Error("Overdraw from draw pile");
     }
     gameState.discardPile.push(card);
+
+    // TODO: save init state to Firestore under new doc
+  }
+
+  function restartGame() {
+    // TODO: save ended state to Firestore
+
+    Object.keys(gameState.players).forEach((uid) => {
+      gameState.players[uid].hand = [];
+      gameState.players[uid].status = "play";
+    });
+
+    let newStartingPlayer;
+    if (gameState.startingPlayer) {
+      // Rotate starting player between rounds
+      const nextPlayerPosition =
+        (gameState.players[gameState.startingPlayer].position + 1) %
+        playersArray.value.length;
+      newStartingPlayer = playersArray.value[nextPlayerPosition].uid;
+    }
+
+    Object.assign(gameState, {
+      ...initGameState,
+      players: gameState.players,
+    });
+
+    startGame(newStartingPlayer);
   }
 
   /**
@@ -202,31 +229,42 @@ export default function () {
               // Remove player from game
               removePlayer(player);
             }
+
+            // TODO: if no players or all remaining players are offline, save gamestate to Firestore to be resumed
           }
 
           break;
         }
         case "toggle-ready": {
-          // TODO: If valid, process, else, throw error
           if (gameState.phase === "ingame") {
             throw new Error("Game has already started");
           }
 
-          if (gameState.players[player].status === "waiting") {
-            gameState.players[player].status = "ready";
-          } else if (gameState.players[player].status === "ready") {
-            gameState.players[player].status = "waiting";
+          if (gameState.players[player].status === "play") {
+            gameState.players[player].status = "wait";
+          } else {
+            gameState.players[player].status = "play";
           }
 
-          if (playersArray.value.every(({ status }) => status === "ready")) {
+          if (playersArray.value.every(({ status }) => status === "play")) {
             startGame();
           }
-
           break;
         }
-        case "restart-game": {
-          // TODO: If valid, process, else, throw error
-          // TODO: Eval all client states and send responses
+        case "toggle-restart": {
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.players[player].status === "restart") {
+            gameState.players[player].status = "play";
+          } else {
+            gameState.players[player].status = "restart";
+          }
+
+          if (playersArray.value.every(({ status }) => status === "restart")) {
+            restartGame();
+          }
           break;
         }
         case "call-dutch": {
