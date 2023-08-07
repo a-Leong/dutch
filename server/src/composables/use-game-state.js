@@ -125,6 +125,7 @@ export default function () {
       discardPile,
       drawPile,
       players,
+      dutchCalledBy: gameState.dutchCalledBy,
     };
 
     return clientState;
@@ -145,6 +146,7 @@ export default function () {
     const randomPlayer =
       playersArray.value[(playersArray.value.length * Math.random()) | 0];
     gameState.startingPlayer = startingPlayer ?? randomPlayer.uid;
+    gameState.activePlayerUid = gameState.startingPlayer;
 
     // Shuffle and add cards to draw pile
     const { deck, cardMap } = generateDeck();
@@ -268,7 +270,33 @@ export default function () {
           break;
         }
         case "call-dutch": {
-          // TODO: If valid, process, else, throw error
+          const activePlayerUid = gameState.activePlayerUid;
+          if (gameState.phase !== "ingame" || activePlayerUid === undefined) {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.dutchCalledBy !== undefined) {
+            throw new Error("Dutch has already been called this round!");
+          }
+
+          const playerPosition = gameState.players[player].position;
+          const activePlayerPosition =
+            gameState.players[activePlayerUid].position;
+
+          const isActivePlayerImmediatelyAfterPlayer =
+            (playerPosition + 1) % playersArray.value.length ===
+            activePlayerPosition;
+
+          const actionQueneHasActions = gameState.actionQueue.length > 0;
+
+          if (!isActivePlayerImmediatelyAfterPlayer || actionQueneHasActions) {
+            throw new Error(
+              "Cannot call dutch unless you've just ended your turn and all actions are completed"
+            );
+          }
+
+          gameState.dutchCalledBy = player;
+
           // TODO: Eval all client states and send responses
           break;
         }
