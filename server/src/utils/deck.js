@@ -69,6 +69,15 @@ export function getCardEffect(card) {
 }
 
 /**
+ * @param {Card[]} cards
+ * @return {Card[]}
+ */
+export function shuffleCards(cards) {
+  const shuffledArray = shuffleArray(cards);
+  return shuffledArray.map((card) => ({ ...card, visibleTo: [] }));
+}
+
+/**
  * @typedef {import('@/models/game-state').Card} Card
  * @returns {{deck: Card[], cardMap: {[id: string]: Card}}}
  */
@@ -83,7 +92,7 @@ export function generateDeck() {
     values.forEach((value) => {
       const id = `card-${cardIds.pop() ?? cards.length}`;
       const pointValue = getPointValue(suit, value);
-      const card = { id, suit, value, pointValue };
+      const card = { id, suit, value, pointValue, visibleTo: [] };
       cards.push(card);
       cardMap[id] = card;
     });

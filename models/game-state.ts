@@ -34,6 +34,7 @@ export type Card = {
     | "q"
     | "k";
   pointValue: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
+  visibleTo: string[]; // Player UIDs
 };
 
 export type FaceUpCard = Card & { orientation: "up" };
@@ -49,6 +50,13 @@ export type Action = {
 };
 
 export type Player = {
+  status: "wait" | "start" | "restart" | "end";
+  isOnline: boolean;
+  position: number; // ∈ [0 .. players.length - 1]
+  hand: Card[];
+};
+
+export type ClientPlayer = {
   status: "wait" | "start" | "restart" | "end";
   isOnline: boolean;
   position: number; // ∈ [0 .. players.length - 1]
@@ -86,7 +94,8 @@ export type ClientState = {
     topCard?: FaceDownCard;
     count: number;
   };
+  drawnCard?: FaceUpCard | FaceDownCard;
   dutchCalledBy?: string; // player UID
-  players: (Player & { uid: string })[];
+  players: (ClientPlayer & { uid: string })[];
   prevCommand?: ClientCommand; // To facilitate UI ? maybe not needed
 };

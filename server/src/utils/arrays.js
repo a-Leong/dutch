@@ -1,7 +1,8 @@
 /**
  * Shuffle array in place
- *
- * @param {any[]} array
+ * @template T
+ * @param {T[]} array
+ * @returns {T[]}
  */
 export function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {

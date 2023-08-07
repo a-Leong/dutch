@@ -3,8 +3,7 @@ import chalk from "chalk";
 
 import useSocketConnections from "./use-socket-connections.js";
 
-import { shuffleArray } from "../utils/arrays.js";
-import { generateDeck, getCardEffect } from "../utils/deck.js";
+import { generateDeck, getCardEffect, shuffleCards } from "../utils/deck.js";
 
 const debug = false;
 
@@ -56,7 +55,7 @@ export default function () {
   }
 
   /**
-   * @param {import("@/models/game-state").FaceUpCard | import("@/models/game-state").FaceDownCard | string} card
+   * @param {import("@/models/game-state").Card | import("@/models/game-state").FaceUpCard | import("@/models/game-state").FaceDownCard | string} card
    */
   function toCard(card) {
     if (debug) console.log("toCard", card);
@@ -68,21 +67,29 @@ export default function () {
   }
 
   /**
-   * @param {import("@/models/game-state").Card | import("@/models/game-state").FaceUpCard | import("@/models/game-state").FaceDownCard} card
+   * @param {import("@/models/game-state").Card | import("@/models/game-state").FaceUpCard | import("@/models/game-state").FaceDownCard | string} card
    * @returns {import("@/models/game-state").FaceUpCard}
    */
   function toFaceUp(card) {
     if (debug) console.log("toFaceUp", card);
-    return { ...gameState.cardMap[card.id], orientation: "up" };
+    if (typeof card === "string") {
+      return { ...gameState.cardMap[card], orientation: "up" };
+    } else {
+      return { ...gameState.cardMap[card.id], orientation: "up" };
+    }
   }
 
   /**
-   * @param {import("@/models/game-state").Card | import("@/models/game-state").FaceUpCard | import("@/models/game-state").FaceDownCard} card
+   * @param {import("@/models/game-state").Card | import("@/models/game-state").FaceUpCard | import("@/models/game-state").FaceDownCard | string} card
    * @returns {import("@/models/game-state").FaceDownCard}
    */
   function toFaceDown(card) {
     if (debug) console.log("toFaceDown", card);
-    return { id: card.id, orientation: "down" };
+    if (typeof card === "string") {
+      return { ...gameState.cardMap[card], orientation: "down" };
+    } else {
+      return { ...gameState.cardMap[card.id], orientation: "down" };
+    }
   }
 
   /**
@@ -115,15 +122,25 @@ export default function () {
       count: drawPileCount,
     };
 
-    // TODO: make cards face up or face down depending on player
     const players = playersArray.value.map((playerI) => {
       const hand = playerI.hand.map((card) => {
-        return card.orientation === "up" ? toFaceUp(card) : toFaceDown(card);
+        return card.visibleTo.includes(player)
+          ? toFaceUp(card)
+          : toFaceDown(card);
       });
       return { ...playerI, hand };
     });
 
-    // TODO: expose discard action card to client
+    // Expose drawn card to clients
+    let drawnCard;
+    gameState.actionQueue.forEach((action) => {
+      if (action !== undefined && action.effect.id === "discard") {
+        drawnCard =
+          action.player === player
+            ? toFaceUp(action.effect.cardId)
+            : toFaceDown(action.effect.cardId);
+      }
+    });
 
     const clientState = {
       phase: gameState.phase,
@@ -131,6 +148,7 @@ export default function () {
       actionQueue: gameState.actionQueue,
       discardPile,
       drawPile,
+      drawnCard,
       players,
       dutchCalledBy: gameState.dutchCalledBy,
     };
@@ -168,7 +186,7 @@ export default function () {
         if (card === undefined) {
           throw new Error("Overdraw from draw pile");
         }
-        gameState.players[uid].hand.push({ ...card, orientation: "down" });
+        gameState.players[uid].hand.push(card);
       });
     }
 
@@ -218,6 +236,11 @@ export default function () {
   function executeCommand({ player, command }) {
     const { broadcastUpdate, sendReject } = useSocketConnections();
     try {
+      // Reset card visibility of all hand card before each command (expose cards on demand every time)
+      Object.values(gameState.players).forEach((player) => [
+        player.hand.forEach((card) => (card.visibleTo = [])),
+      ]);
+
       switch (command.id) {
         case "connect-to-room": {
           if (gameState.players[player] === undefined) {
@@ -384,7 +407,7 @@ export default function () {
                 gameState.discardPile.pop()
               );
 
-            const newDrawPile = shuffleArray(gameState.discardPile);
+            const newDrawPile = shuffleCards(gameState.discardPile);
             gameState.discardPile = [discardPileTopCard];
             gameState.drawPile = newDrawPile;
           }
