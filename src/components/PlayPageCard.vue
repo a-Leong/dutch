@@ -7,6 +7,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  selected: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const extendedCardName = computed(() => {
@@ -35,7 +39,7 @@ const extendedCardName = computed(() => {
 </script>
 
 <template>
-  <div class="card">
+  <div :class="['card', { selected }]">
     <label>{{ extendedCardName }}</label>
   </div>
 </template>
@@ -47,9 +51,17 @@ const extendedCardName = computed(() => {
   justify-content: center;
   align-items: center;
 
-  border: solid black 1px;
+  cursor: pointer;
+  border: solid transparent 4px; /* prevents position change when .selected */
   border-radius: 4px;
   height: 150px;
   aspect-ratio: 2.5 / 3.5;
+
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+.card.selected {
+  border-bottom: solid blue 4px;
 }
 </style>

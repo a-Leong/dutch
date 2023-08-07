@@ -23,10 +23,34 @@ const { game } = storeToRefs(gameStore);
 const socketStore = useSocketStore();
 const { sendCommand } = socketStore;
 
+//
+// Local state and command handlers requiring specific card(s) as input
+//
+
+/** @type {import('vue').Ref<string[]>} */
 const selectedCards = ref([]);
+
+function toggleCardSelected(cardId) {
+  const cardIndex = selectedCards.value.indexOf(cardId);
+  if (cardIndex !== -1) {
+    selectedCards.value.splice(cardIndex, 1);
+  } else {
+    selectedCards.value.push(cardId);
+  }
+}
+
 watchEffect(() => {
   if (selectedCards.value.length > 2) selectedCards.value.shift();
 });
+
+function matchDiscard() {
+  if (selectedCards.value.length !== 1) {
+    alert("Can only match discard with one card selected");
+  } else {
+    sendCommand({ id: "match-discard", cardId: selectedCards.value[0] });
+    selectedCards.value = [];
+  }
+}
 </script>
 
 <template>
@@ -67,6 +91,8 @@ watchEffect(() => {
           v-for="card in player.hand"
           v-bind="{ card }"
           :key="card.id"
+          :selected="selectedCards.includes(card.id)"
+          @click="toggleCardSelected(card.id)"
         />
       </div>
     </section>
@@ -96,12 +122,7 @@ watchEffect(() => {
         draw from discard pile
       </button>
 
-      <button
-        type="button"
-        @click="sendCommand({ id: 'match-discard', cardId: 'PLACEHOLDER' })"
-      >
-        match discard
-      </button>
+      <button type="button" @click="matchDiscard">match discard</button>
 
       <button type="button" @click="sendCommand({ id: 'call-dutch' })">
         call dutch
