@@ -37,7 +37,7 @@ export type Card = {
   visibleTo: string[]; // Player UIDs
 };
 
-export type FaceUpCard = Card & { orientation: "up" };
+export type FaceUpCard = Omit<Card, "visibleTo"> & { orientation: "up" };
 export type FaceDownCard = Pick<Card, "id"> & { orientation: "down" };
 
 export type Action = {
