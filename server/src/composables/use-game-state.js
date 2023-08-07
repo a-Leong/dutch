@@ -296,38 +296,31 @@ export default function () {
           }
 
           gameState.dutchCalledBy = player;
-
-          // TODO: Eval all client states and send responses
           break;
         }
         case "draw-discard-pile": {
           // TODO: If valid, process, else, throw error
-          // TODO: Eval all client states and send responses
+
           break;
         }
         case "draw-draw-pile": {
           // TODO: If valid, process, else, throw error
-          // TODO: Eval all client states and send responses
           break;
         }
         case "match-discard": {
           // TODO: If valid, process, else, throw error
-          // TODO: Eval all client states and send responses
           break;
         }
         case "peek": {
           // TODO: If valid, process, else, throw error
-          // TODO: Eval all client states and send responses
           break;
         }
         case "replace-discard": {
           // TODO: If valid, process, else, throw error
-          // TODO: Eval all client states and send responses
           break;
         }
         case "swap": {
           // TODO: If valid, process, else, throw error
-          // TODO: Eval all client states and send responses
           break;
         }
       }
