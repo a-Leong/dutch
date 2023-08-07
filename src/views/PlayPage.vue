@@ -1,4 +1,5 @@
 <script setup>
+import { ref, watchEffect } from "vue";
 import { storeToRefs } from "pinia";
 
 import { auth } from "@/firebase-config";
@@ -21,15 +22,22 @@ const { game } = storeToRefs(gameStore);
 
 const socketStore = useSocketStore();
 const { sendCommand } = socketStore;
+
+const selectedCards = ref([]);
+watchEffect(() => {
+  if (selectedCards.value.length > 2) selectedCards.value.shift();
+});
 </script>
 
 <template>
   <div>
+    <!-- Debug clientState JSON -->
     <section>
       <pre>{{ game }}</pre>
     </section>
 
-    <section class="even-row">
+    <!-- Draw and discard piles -->
+    <section v-if="game.phase === 'ingame'" class="even-row">
       <div>
         <label>Draw</label>
         <play-page-card
@@ -47,6 +55,7 @@ const { sendCommand } = socketStore;
       </div>
     </section>
 
+    <!-- Players' hands -->
     <section
       v-if="game.phase === 'ingame'"
       v-for="player in game.players"
@@ -62,16 +71,22 @@ const { sendCommand } = socketStore;
       </div>
     </section>
 
+    <!-- Handshake game commands (all players must agree for server to make change) -->
     <section>
-      <button type="button" @click="sendCommand({ id: 'toggle-ready' })">
-        toggle ready
+      <button type="button" @click="sendCommand({ id: 'toggle-start' })">
+        toggle start
       </button>
 
       <button type="button" @click="sendCommand({ id: 'toggle-restart' })">
         toggle restart
       </button>
+
+      <button type="button" @click="sendCommand({ id: 'toggle-end' })">
+        toggle end
+      </button>
     </section>
 
+    <!-- Individual game commands -->
     <section>
       <button type="button" @click="sendCommand({ id: 'draw-discard-pile' })">
         draw from draw pile
@@ -81,16 +96,23 @@ const { sendCommand } = socketStore;
         draw from discard pile
       </button>
 
+      <button
+        type="button"
+        @click="sendCommand({ id: 'match-discard', cardId: 'PLACEHOLDER' })"
+      >
+        match discard
+      </button>
+
       <button type="button" @click="sendCommand({ id: 'call-dutch' })">
         call dutch
       </button>
     </section>
 
+    <!-- Player settings -->
     <section>
       <button type="button" @click="auth.signOut">sign out</button>
     </section>
 
-    <!-- Fixed position bottom corner -->
     <app-server-status-icon class="server-status-icon" :size="24" />
   </div>
 </template>

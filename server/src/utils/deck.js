@@ -52,6 +52,21 @@ function getPointValue(suit, value) {
 }
 
 /**
+ * @param {Card} card
+ * @returns {import('@/models/game-state').Action['effect'] | undefined}
+ */
+export function getCardEffect(card) {
+  switch (card.value) {
+    case "j":
+      return { id: "swap" };
+    case "q":
+      return { id: "peek" };
+    default:
+      return undefined;
+  }
+}
+
+/**
  * @typedef {import('@/models/game-state').Card} Card
  * @returns {{deck: Card[], cardMap: {[id: string]: Card}}}
  */

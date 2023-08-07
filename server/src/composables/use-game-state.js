@@ -3,7 +3,7 @@ import chalk from "chalk";
 
 import useSocketConnections from "./use-socket-connections.js";
 
-import { generateDeck } from "../utils/deck.js";
+import { generateDeck, getCardEffect } from "../utils/deck.js";
 
 const debug = false;
 
@@ -55,11 +55,15 @@ export default function () {
   }
 
   /**
-   * @param {import("@/models/game-state").FaceUpCard | import("@/models/game-state").FaceDownCard} card
+   * @param {import("@/models/game-state").FaceUpCard | import("@/models/game-state").FaceDownCard | string} card
    */
   function toCard(card) {
     if (debug) console.log("toCard", card);
-    return gameState.cardMap[card.id];
+    if (typeof card === "string") {
+      return gameState.cardMap[card];
+    } else {
+      return gameState.cardMap[card.id];
+    }
   }
 
   /**
@@ -118,6 +122,8 @@ export default function () {
       return { ...playerI, hand };
     });
 
+    // TODO: expose discard action card to client
+
     const clientState = {
       phase: gameState.phase,
       activePlayerUid: gameState.activePlayerUid,
@@ -175,12 +181,12 @@ export default function () {
     // TODO: save init state to Firestore under new doc
   }
 
-  function restartGame() {
+  function endGame() {
     // TODO: save ended state to Firestore
 
     Object.keys(gameState.players).forEach((uid) => {
       gameState.players[uid].hand = [];
-      gameState.players[uid].status = "play";
+      gameState.players[uid].status = "start";
     });
 
     let newStartingPlayer;
@@ -197,7 +203,12 @@ export default function () {
       players: gameState.players,
     });
 
-    startGame(newStartingPlayer);
+    gameState.actionQueue = [];
+    gameState.commands = [];
+    gameState.discardPile = [];
+    gameState.drawPile = [];
+
+    return newStartingPlayer;
   }
 
   /**
@@ -237,18 +248,18 @@ export default function () {
 
           break;
         }
-        case "toggle-ready": {
+        case "toggle-start": {
           if (gameState.phase === "ingame") {
             throw new Error("Game has already started");
           }
 
-          if (gameState.players[player].status === "play") {
+          if (gameState.players[player].status === "start") {
             gameState.players[player].status = "wait";
           } else {
-            gameState.players[player].status = "play";
+            gameState.players[player].status = "start";
           }
 
-          if (playersArray.value.every(({ status }) => status === "play")) {
+          if (playersArray.value.every(({ status }) => status === "start")) {
             startGame();
           }
           break;
@@ -259,13 +270,30 @@ export default function () {
           }
 
           if (gameState.players[player].status === "restart") {
-            gameState.players[player].status = "play";
+            gameState.players[player].status = "start";
           } else {
             gameState.players[player].status = "restart";
           }
 
           if (playersArray.value.every(({ status }) => status === "restart")) {
-            restartGame();
+            const newStartingPlayer = endGame();
+            startGame(newStartingPlayer);
+          }
+          break;
+        }
+        case "toggle-end": {
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.players[player].status === "end") {
+            gameState.players[player].status = "start";
+          } else {
+            gameState.players[player].status = "end";
+          }
+
+          if (playersArray.value.every(({ status }) => status === "end")) {
+            endGame();
           }
           break;
         }
@@ -364,7 +392,49 @@ export default function () {
           break;
         }
         case "match-discard": {
-          // TODO: If valid, process, else, throw error
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.discardPile.length === 0) {
+            throw new Error("Discard pile is empty");
+          }
+
+          const cardInHand = gameState.players[player].hand.find(
+            ({ id }) => id === command.cardId
+          );
+          if (cardInHand === undefined) {
+            throw new Error("Cannot match discard that card");
+          }
+
+          // Remove card from player's hand
+          gameState.players[player].hand = gameState.players[
+            player
+          ].hand.filter((card) => card.id !== command.cardId);
+
+          const discardedCard = toCard(command.cardId);
+
+          // If card has effect, add to action queue
+          const effect = getCardEffect(discardedCard);
+          if (effect !== undefined) {
+            // Card has effect
+            gameState.actionQueue.push({ player, effect });
+          }
+
+          if (
+            discardedCard.value !==
+            gameState.discardPile[gameState.discardPile.length - 1].value
+          ) {
+            // Discard doesn't match
+            gameState.actionQueue.push({
+              player,
+              effect: { id: "blind-draw" },
+            });
+          }
+
+          // Add discarded card to discard pile
+          gameState.discardPile.push(discardedCard);
+
           break;
         }
         case "peek": {
@@ -376,6 +446,10 @@ export default function () {
           break;
         }
         case "swap": {
+          // TODO: If valid, process, else, throw error
+          break;
+        }
+        case "blind-draw": {
           // TODO: If valid, process, else, throw error
           break;
         }

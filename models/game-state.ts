@@ -3,14 +3,16 @@ export type ClientCommand = {
   command:
     | { id: "connect-to-room" }
     | { id: "disconnect-from-room" }
-    | { id: "toggle-ready" }
+    | { id: "toggle-start" }
     | { id: "toggle-restart" }
+    | { id: "toggle-end" }
     | { id: "draw-draw-pile" }
     | { id: "draw-discard-pile" }
     | { id: "replace-discard"; cardId: string }
     | { id: "match-discard"; cardId: string }
     | { id: "peek"; cardId: string }
     | { id: "swap"; card1Id: string; card2Id: string }
+    | { id: "blind-draw" }
     | { id: "call-dutch" };
 };
 
@@ -39,11 +41,15 @@ export type FaceDownCard = Pick<Card, "id"> & { orientation: "down" };
 
 export type Action = {
   player: string;
-  effect: { id: "discard"; cardId: string } | { id: "peek" } | { id: "swap" };
+  effect:
+    | { id: "discard"; cardId: string }
+    | { id: "peek" }
+    | { id: "swap" }
+    | { id: "blind-draw" };
 };
 
 export type Player = {
-  status: "wait" | "play" | "restart";
+  status: "wait" | "start" | "restart" | "end";
   isOnline: boolean;
   position: number; // ∈ [0 .. players.length - 1]
   hand: (FaceUpCard | FaceDownCard)[];
