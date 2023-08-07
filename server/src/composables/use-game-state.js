@@ -121,7 +121,7 @@ export default function () {
     const clientState = {
       phase: gameState.phase,
       activePlayerUid: gameState.activePlayerUid,
-      actionQueue: [],
+      actionQueue: gameState.actionQueue,
       discardPile,
       drawPile,
       players,
@@ -300,6 +300,28 @@ export default function () {
         }
         case "draw-discard-pile": {
           // TODO: If valid, process, else, throw error
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.activePlayerUid !== player) {
+            throw new Error("Not your turn");
+          }
+
+          if (gameState.actionQueue.length > 0) {
+            throw new Error("Must wait for all actions to complete");
+          }
+
+          const drawnCard = gameState.discardPile.pop();
+
+          if (drawnCard === undefined) {
+            throw new Error("Discard pile is empty");
+          }
+
+          gameState.actionQueue.push({
+            player,
+            effect: { id: "discard", cardId: drawnCard.id },
+          });
 
           break;
         }

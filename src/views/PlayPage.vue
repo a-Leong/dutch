@@ -71,6 +71,10 @@ const { sendCommand } = socketStore;
         toggle restart
       </button>
 
+      <button type="button" @click="sendCommand({ id: 'draw-discard-pile' })">
+        draw from discard pile
+      </button>
+
       <button type="button" @click="sendCommand({ id: 'call-dutch' })">
         call dutch
       </button>

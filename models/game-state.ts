@@ -38,8 +38,8 @@ export type FaceUpCard = Card & { orientation: "up" };
 export type FaceDownCard = Pick<Card, "id"> & { orientation: "down" };
 
 export type Action = {
-  playerUid: string;
-  effect: "discard" | "swap" | "peek";
+  player: string;
+  effect: { id: "discard"; cardId: string } | { id: "peek" } | { id: "swap" };
 };
 
 export type Player = {
