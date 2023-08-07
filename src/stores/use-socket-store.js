@@ -55,44 +55,43 @@ export const useSocketStore = defineStore("server-socket", () => {
   async function init(token) {
     autoReconnect.value = true;
 
-    return /** @type {Promise<void>} */ (
-      new Promise((resolve) => {
-        if (initLoadResolver.value === undefined) {
-          initLoadResolver.value = resolve;
+    const initResolver = (resolve) => {
+      if (initLoadResolver.value === undefined) {
+        initLoadResolver.value = resolve;
+      }
+      const wsUrl = new URL(import.meta.env.VITE_SERVER_ADDRESS);
+      wsUrl.searchParams.append("token", token);
+      ws.value = new WebSocket(wsUrl);
+      ws.value.addEventListener("open", () => {
+        isConnected.value = true;
+        stopReconnecting();
+        initLoadResolver.value?.();
+      });
+      const onclose = (token, response) => {
+        isConnected.value = false;
+        if (response.code === 3000 || response.code === 3001) {
+          // Server told me request or auth UID was bad; stop retrying
+          router.push({
+            name: "ErrorPage",
+            query: { msg: response.reason },
+          });
+        } else {
+          // Server told me WebSocket closed normally; consider retrying
+          const shouldReconnect = autoReconnect.value && !isReconnecting.value;
+          if (shouldReconnect) startReconnecting(token);
         }
-        const wsUrl = new URL(import.meta.env.VITE_SERVER_ADDRESS);
-        wsUrl.searchParams.append("token", token);
-        ws.value = new WebSocket(wsUrl);
-        ws.value.addEventListener("open", () => {
-          isConnected.value = true;
-          stopReconnecting();
-          initLoadResolver.value?.();
-        });
-        const onclose = (token, response) => {
-          isConnected.value = false;
-          if (response.code === 3000 || response.code === 3001) {
-            // Server told me request or auth UID was bad; stop retrying
-            router.push({
-              name: "ErrorPage",
-              query: { msg: response.reason },
-            });
-          } else {
-            // Server told me WebSocket closed normally; consider retrying
-            const shouldReconnect =
-              autoReconnect.value && !isReconnecting.value;
-            if (shouldReconnect) startReconnecting(token);
-          }
-        };
-        ws.value.addEventListener("close", (r) => onclose(token, r));
-        ws.value.addEventListener("error", (r) => onclose(token, r));
+      };
+      ws.value.addEventListener("close", (r) => onclose(token, r));
+      ws.value.addEventListener("error", (r) => onclose(token, r));
 
-        ws.value.addEventListener("message", (message) => {
-          /** @type {import("@/models/response").Response } */
-          const response = JSON.parse(message.data);
-          handleResponse(response);
-        });
-      })
-    );
+      ws.value.addEventListener("message", (message) => {
+        /** @type {import("@/models/response").Response } */
+        const response = JSON.parse(message.data);
+        handleResponse(response);
+      });
+    };
+
+    return /** @type {Promise<void>} */ (new Promise(initResolver));
   }
 
   /**
