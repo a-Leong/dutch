@@ -33,7 +33,10 @@ export default function () {
   function addPlayer(uid) {
     // Add player to game
     const position = playersArray.value.length;
+
+    /** @type {import("@/models/game-state").Player} */
     const newPlayer = {
+      status: "waiting",
       position,
       hand: [],
       isOnline: true,
@@ -203,13 +206,22 @@ export default function () {
 
           break;
         }
-        case "ready-to-play": {
+        case "toggle-ready": {
           // TODO: If valid, process, else, throw error
           if (gameState.phase === "ingame") {
             throw new Error("Game has already started");
           }
 
-          startGame();
+          if (gameState.players[player].status === "waiting") {
+            gameState.players[player].status = "ready";
+          } else if (gameState.players[player].status === "ready") {
+            gameState.players[player].status = "waiting";
+          }
+
+          if (playersArray.value.every(({ status }) => status === "ready")) {
+            startGame();
+          }
+
           break;
         }
         case "restart-game": {

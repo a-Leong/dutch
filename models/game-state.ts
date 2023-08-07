@@ -3,7 +3,7 @@ export type ClientCommand = {
   command:
     | { id: "connect-to-room" }
     | { id: "disconnect-from-room" }
-    | { id: "ready-to-play" }
+    | { id: "toggle-ready" }
     | { id: "restart-game" }
     | { id: "draw-draw-pile" }
     | { id: "draw-discard-pile" }
@@ -43,6 +43,7 @@ export type Action = {
 };
 
 export type Player = {
+  status: "waiting" | "ready";
   isOnline: boolean;
   position: number; // ∈ [0 .. players.length - 1]
   hand: (FaceUpCard | FaceDownCard)[];

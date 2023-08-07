@@ -42,13 +42,14 @@ const extendedCardName = computed(() => {
 
 <style scoped>
 .card {
+  margin: 2px;
   display: flex;
   justify-content: center;
   align-items: center;
 
   border: solid black 1px;
   border-radius: 4px;
-  height: 100px;
+  height: 150px;
   aspect-ratio: 2.5 / 3.5;
 }
 </style>

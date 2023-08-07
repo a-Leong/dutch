@@ -63,8 +63,8 @@ const { sendCommand } = socketStore;
     </section>
 
     <section>
-      <button type="button" @click="sendCommand({ id: 'ready-to-play' })">
-        ready to play
+      <button type="button" @click="sendCommand({ id: 'toggle-ready' })">
+        toggle ready
       </button>
     </section>
 
@@ -78,6 +78,10 @@ const { sendCommand } = socketStore;
 </template>
 
 <style scoped>
+section {
+  margin: 16px;
+}
+
 .even-row {
   margin: 16px;
   display: flex;
