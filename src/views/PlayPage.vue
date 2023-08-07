@@ -93,6 +93,7 @@ function matchDiscard() {
           :key="card.id"
           :selected="selectedCards.includes(card.id)"
           @click="toggleCardSelected(card.id)"
+          @keydown.enter="toggleCardSelected(card.id)"
         />
       </div>
     </section>

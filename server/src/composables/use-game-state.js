@@ -3,6 +3,7 @@ import chalk from "chalk";
 
 import useSocketConnections from "./use-socket-connections.js";
 
+import { shuffleArray } from "../utils/arrays.js";
 import { generateDeck, getCardEffect } from "../utils/deck.js";
 
 const debug = false;
@@ -383,9 +384,7 @@ export default function () {
                 gameState.discardPile.pop()
               );
 
-            const newDrawPile = gameState.discardPile.sort(
-              () => Math.random() - 0.5
-            );
+            const newDrawPile = shuffleArray(gameState.discardPile);
             gameState.discardPile = [discardPileTopCard];
             gameState.drawPile = newDrawPile;
           }

@@ -1,3 +1,5 @@
+import { shuffleArray } from "./arrays.js";
+
 /** @type {import('@/models/game-state').Card['suit'][]} */
 const suits = ["d", "h", "c", "s"];
 
@@ -75,7 +77,7 @@ export function generateDeck() {
   const cards = [];
   /** @type {{[id: string]: Card}} */
   const cardMap = {};
-  const cardIds = [...Array(52).keys()].sort(() => Math.random());
+  const cardIds = shuffleArray([...Array(52).keys()]);
 
   suits.forEach((suit) => {
     values.forEach((value) => {
@@ -88,7 +90,7 @@ export function generateDeck() {
   });
 
   return {
-    deck: cards.sort(() => Math.random() - 0.5),
+    deck: shuffleArray(cards),
     cardMap: cardMap,
   };
 }
