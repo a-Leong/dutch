@@ -299,7 +299,6 @@ export default function () {
           break;
         }
         case "draw-discard-pile": {
-          // TODO: If valid, process, else, throw error
           if (gameState.phase !== "ingame") {
             throw new Error("Game hasn't started");
           }
@@ -326,7 +325,42 @@ export default function () {
           break;
         }
         case "draw-draw-pile": {
-          // TODO: If valid, process, else, throw error
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.activePlayerUid !== player) {
+            throw new Error("Not your turn");
+          }
+
+          if (gameState.actionQueue.length > 0) {
+            throw new Error("Must wait for all actions to complete");
+          }
+
+          const drawnCard = gameState.drawPile.pop();
+
+          if (drawnCard === undefined) {
+            throw new Error("Draw pile is empty");
+          }
+
+          gameState.actionQueue.push({
+            player,
+            effect: { id: "discard", cardId: drawnCard.id },
+          });
+
+          if (gameState.drawPile.length === 0) {
+            // Drew last card in draw pile, shuffle discard pile for draw pile
+            const discardPileTopCard =
+              /** @type {import("@/models/game-state").Card} */ (
+                gameState.discardPile.pop()
+              );
+
+            const newDrawPile = gameState.discardPile.sort(
+              () => Math.random() - 0.5
+            );
+            gameState.discardPile = [discardPileTopCard];
+            gameState.drawPile = newDrawPile;
+          }
           break;
         }
         case "match-discard": {
