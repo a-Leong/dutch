@@ -71,6 +71,7 @@ export default function () {
    * @returns {import("@/models/game-state").FaceUpCard}
    */
   function toFaceUp(card) {
+    // TODO: prevent return object from leaking visibleTo property
     if (debug) console.log("toFaceUp", card);
     if (typeof card === "string") {
       return { ...gameState.cardMap[card], orientation: "up" };
@@ -86,9 +87,9 @@ export default function () {
   function toFaceDown(card) {
     if (debug) console.log("toFaceDown", card);
     if (typeof card === "string") {
-      return { ...gameState.cardMap[card], orientation: "down" };
+      return { id: card, orientation: "down" };
     } else {
-      return { ...gameState.cardMap[card.id], orientation: "down" };
+      return { id: gameState.cardMap[card.id].id, orientation: "down" };
     }
   }
 
@@ -103,10 +104,7 @@ export default function () {
     const discardPile = {
       topCard:
         discardPileCount > 0
-          ? {
-              ...gameState.discardPile[discardPileCount - 1],
-              orientation: "up",
-            }
+          ? toFaceUp(gameState.discardPile[discardPileCount - 1])
           : undefined,
       count: discardPileCount,
     };
