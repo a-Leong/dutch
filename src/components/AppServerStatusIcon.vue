@@ -1,8 +1,6 @@
 <script setup>
 import { useSocketStore } from "@/stores/use-socket-store";
 
-defineProps({ size: { type: Number, required: true } });
-
 const socketStore = useSocketStore();
 </script>
 
@@ -10,8 +8,6 @@ const socketStore = useSocketStore();
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 20 20"
-    :width="size"
-    :height="size"
     :class="socketStore.isConnected ? 'slow-fade' : 'fast-fade'"
   >
     <!-- https://api.iconify.design/fluent:plug-connected-checkmark-20-filled.svg -->
@@ -31,6 +27,11 @@ const socketStore = useSocketStore();
 </template>
 
 <style scoped>
+svg {
+  height: 24px;
+  min-width: 24px;
+}
+
 svg.fast-fade {
   animation: fade-in-out 400ms linear infinite alternate;
 }

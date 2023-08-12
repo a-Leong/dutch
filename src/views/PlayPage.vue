@@ -7,8 +7,8 @@ import { auth } from "@/firebase-config";
 import { useGameStore } from "@/stores/use-game-store";
 import { useSocketStore } from "@/stores/use-socket-store";
 
-import AppServerStatusIcon from "@/components/AppServerStatusIcon.vue";
 import PlayPageCard from "@/components/PlayPageCard.vue";
+import PlayPageFooter from "@/components/PlayPageFooter.vue";
 
 defineProps({
   msg: {
@@ -115,7 +115,7 @@ function matchDiscard() {
 
     <!-- Individual game commands -->
     <section>
-      <button type="button" @click="sendCommand({ id: 'draw-discard-pile' })">
+      <button type="button" @click="sendCommand({ id: 'draw-draw-pile' })">
         draw from draw pile
       </button>
 
@@ -135,7 +135,7 @@ function matchDiscard() {
       <button type="button" @click="auth.signOut">sign out</button>
     </section>
 
-    <app-server-status-icon class="server-status-icon" :size="24" />
+    <play-page-footer />
   </div>
 </template>
 
@@ -148,11 +148,5 @@ section {
   margin: 16px;
   display: flex;
   justify-content: space-evenly;
-}
-
-.server-status-icon {
-  position: fixed;
-  bottom: 0;
-  right: 0;
 }
 </style>

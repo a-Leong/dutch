@@ -36,6 +36,7 @@ export default function () {
       );
 
       connections.value[uid] = ws;
+      // Bind send method to original context (internally uses `this` keyword)
       connections.value[uid].send = ws.send.bind(ws);
 
       // Connect player to room
@@ -81,6 +82,14 @@ export default function () {
    */
   function sendUpdate(uid, gameState) {
     const ws = connections.value[uid];
+
+    if (!ws) {
+      console.error(
+        `Attempting to send update over WS for ${uid} failed.`,
+        connections.value
+      );
+    }
+
     if (!ws || ws.readyState !== ws.OPEN) return;
 
     const encodedData = JSON.stringify({ id: "update", gameState });

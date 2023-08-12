@@ -19,6 +19,10 @@ export const useSocketStore = defineStore("server-socket", () => {
   const reconnectAttempts = ref(0);
   const timeoutId = ref();
 
+  // TODO: move to use-message-store for chating
+  /** @type {import("vue").Ref<import('@/models/message').Message[]>} */
+  const messages = ref([]);
+
   /**
    * @param { string } token
    */
@@ -107,7 +111,12 @@ export const useSocketStore = defineStore("server-socket", () => {
         break;
       }
       case "reject": {
-        // TODO: Display command rejected somehow?
+        const timestamp = new Date();
+        messages.value.push({
+          author: "Server",
+          message: response.reason,
+          timestamp,
+        });
         console.warn("Server says:", response);
         break;
       }
@@ -137,6 +146,7 @@ export const useSocketStore = defineStore("server-socket", () => {
 
   return {
     isConnected: readonly(isConnected),
+    messages: readonly(messages),
 
     init,
     deinit,

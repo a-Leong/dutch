@@ -271,6 +271,10 @@ export default function () {
           break;
         }
         case "toggle-start": {
+          if (playersArray.value.length <= 1) {
+            throw new Error("Need at least two players to start game");
+          }
+
           if (gameState.phase === "ingame") {
             throw new Error("Game has already started");
           }
