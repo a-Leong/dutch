@@ -12,7 +12,7 @@
       "@/*": ["src/*"]
     },
     "outDir": "dist",
-    "types": ["vite/client"]
+    "types": ["vite/client", "web-bluetooth"]
   },
 
   "include": ["src/**/*.vue", "src/**/*.js", "models/**/*.ts"],
