@@ -46,7 +46,6 @@ button {
   margin: 2px;
 
   border: none;
-  outline: none;
 }
 
 svg {

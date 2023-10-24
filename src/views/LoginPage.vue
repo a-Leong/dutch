@@ -74,11 +74,7 @@ async function signIn() {
 
           <div>
             <label>email: </label>
-            <input
-              v-model="signUpEmailInput"
-              type="email"
-              @click="$event.stopPropagation()"
-            />
+            <input v-model="signUpEmailInput" type="email" @click.stop />
           </div>
 
           <div>
@@ -87,11 +83,11 @@ async function signIn() {
               v-model="signUpPasswordInput"
               type="password"
               @keydown.enter="signUp"
-              @click="$event.stopPropagation()"
+              @click.stop
             />
           </div>
 
-          <button @click="$event.stopPropagation(), signUp()">go</button>
+          <button @click.stop="signUp">go</button>
 
           <p v-if="signUpError" class="error">{{ signUpError }}</p>
         </div>
@@ -112,11 +108,7 @@ async function signIn() {
 
           <div>
             <label>email: </label>
-            <input
-              v-model="signInEmailInput"
-              type="email"
-              @click="$event.stopPropagation()"
-            />
+            <input v-model="signInEmailInput" type="email" @click.stop />
           </div>
 
           <div>
@@ -125,11 +117,11 @@ async function signIn() {
               v-model="signInPasswordInput"
               type="password"
               @keydown.enter="signIn"
-              @click="$event.stopPropagation()"
+              @click.stop
             />
           </div>
 
-          <button @click="$event.stopPropagation(), signIn()">go</button>
+          <button @click.stop="signIn">go</button>
 
           <p v-if="signInError" class="error">{{ signInError }}</p>
         </div>
