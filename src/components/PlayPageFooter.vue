@@ -210,6 +210,7 @@ svg {
 }
 
 .status-icon {
+  z-index: 200;
   position: absolute;
   right: 0;
   bottom: 0;
