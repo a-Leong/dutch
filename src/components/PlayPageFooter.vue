@@ -11,6 +11,10 @@ import { stringToColor } from "@/utils/colors";
 const messageStore = useMessageStore();
 const { messages } = toRefs(messageStore);
 
+function getAuthorName(author) {
+  return author.substring(0, 4);
+}
+
 //
 // Preview messages
 
@@ -96,7 +100,7 @@ function sendMessage() {
       >
         <b class="timestamp">{{ new Date(timestamp).toLocaleTimeString() }}</b>
         <b :style="{ color: stringToColor(author) }" class="author">
-          {{ author }}:
+          {{ getAuthorName(author) }}:
         </b>
         {{ message }}
       </p>
@@ -113,7 +117,7 @@ function sendMessage() {
         class="message"
       >
         <b :style="{ color: stringToColor(author) }" class="author">
-          {{ author }}:
+          {{ getAuthorName(author) }}:
         </b>
         {{ message }}
       </p>
@@ -168,7 +172,7 @@ svg {
   left: 0;
   right: 0;
   height: calc(100% - 32px);
-  overflow: auto;
+  overflow-y: scroll;
 
   padding-left: 12px;
   padding-bottom: 32px;
