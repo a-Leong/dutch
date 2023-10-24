@@ -54,7 +54,7 @@ function matchDiscard() {
 </script>
 
 <template>
-  <div>
+  <div class="play-page">
     <!-- Debug clientState JSON -->
     <section>
       <pre>{{ game }}</pre>
@@ -148,5 +148,9 @@ section {
   margin: 16px;
   display: flex;
   justify-content: space-evenly;
+}
+
+.play-page {
+  padding-bottom: 24px;
 }
 </style>

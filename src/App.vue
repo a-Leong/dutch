@@ -56,6 +56,10 @@ onAuthStateChanged(auth, async (user) => {
 
 <style>
 /* App Global Styles */
+#app {
+  height: 100%;
+  overflow: scroll;
+}
 
 pre {
   /* Debug */

@@ -1,15 +1,15 @@
 <script setup>
-import { ref, toRefs, watch } from "vue";
+import { nextTick, ref, toRefs, watch } from "vue";
 import { useScroll } from "@vueuse/core";
 
 import AppServerStatusIcon from "@/components/AppServerStatusIcon.vue";
 
-import { useSocketStore } from "@/stores/use-socket-store";
+import { useMessageStore } from "@/stores/use-message-store";
 
 import { stringToColor } from "@/utils/colors";
 
-const socketStore = useSocketStore();
-const { messages } = toRefs(socketStore);
+const messageStore = useMessageStore();
+const { messages } = toRefs(messageStore);
 
 //
 // Preview messages
@@ -17,7 +17,7 @@ const { messages } = toRefs(socketStore);
 /** @type {import("vue").Ref<import('@/models/message').Message[]>} */
 const latestMessages = ref([]);
 
-watch(socketStore.messages, () => {
+watch(messages, () => {
   latestMessages.value.push(messages.value[messages.value.length - 1]);
   setTimeout(() => latestMessages.value.shift(), 4000);
 });
@@ -31,53 +31,40 @@ const showMessagesOverlay = ref(false);
 
 const { y } = useScroll(overlayRef);
 
+const chatInputRef = ref();
+
+function toggleMessageOverlay() {
+  showMessagesOverlay.value = !showMessagesOverlay.value;
+  if (showMessagesOverlay.value) {
+    // Overlay opened, focus chatbox
+    nextTick(() => chatInputRef.value?.focus());
+  }
+}
+
 watch(
   [showMessagesOverlay, messages],
   () => (y.value = scrollContainerRef.value?.$el.clientHeight),
   { flush: "post" }
 );
+
+//
+// Send messages
+const messageInput = ref("");
+
+function sendMessage() {
+  if (messageInput.value.length > 0) {
+    // Send
+    messageStore.addRemoteMessage(messageInput.value);
+
+    // Clear input
+    messageInput.value = "";
+  }
+}
 </script>
 
 <template>
-  <div v-if="showMessagesOverlay" ref="overlayRef" class="messages-overlay">
-    <!-- All message -->
-    <transition-group
-      class="scroll-container"
-      ref="scrollContainerRef"
-      tag="div"
-      name="list"
-    >
-      <p
-        v-for="({ author, message, timestamp }, i) in messages"
-        :key="i"
-        class="message"
-      >
-        <b class="timestamp">{{ timestamp.toLocaleTimeString() }}</b>
-        <b :style="{ color: stringToColor(author) }" class="author">
-          {{ author }}:
-        </b>
-        {{ message }}
-      </p>
-      <p v-if="messages.length === 0" class="message">no messages</p>
-    </transition-group>
-  </div>
-
-  <!-- Latest messages preview -->
-  <transition-group v-else class="messages-preview" tag="div" name="list">
-    <p
-      v-for="{ author, message, timestamp } in latestMessages"
-      :key="timestamp.toISOString()"
-      class="message"
-    >
-      <b :style="{ color: stringToColor(author) }" class="author">
-        {{ author }}:
-      </b>
-      {{ message }}
-    </p>
-  </transition-group>
-
   <!-- Toggle messages -->
-  <button @click="showMessagesOverlay = !showMessagesOverlay">
+  <button @click="toggleMessageOverlay" class="toggle-overlay-button">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
       <path
         v-if="showMessagesOverlay"
@@ -93,6 +80,56 @@ watch(
     </svg>
   </button>
 
+  <div v-show="showMessagesOverlay" ref="overlayRef" class="messages-overlay">
+    <!-- All message -->
+    <transition-group
+      style="margin-top: auto"
+      class="scroll-container"
+      ref="scrollContainerRef"
+      tag="div"
+      name="list"
+    >
+      <p
+        v-for="({ author, message, timestamp }, i) in messages"
+        :key="i"
+        class="message"
+      >
+        <b class="timestamp">{{ new Date(timestamp).toLocaleTimeString() }}</b>
+        <b :style="{ color: stringToColor(author) }" class="author">
+          {{ author }}:
+        </b>
+        {{ message }}
+      </p>
+      <p v-if="messages.length === 0" class="message">no messages</p>
+    </transition-group>
+  </div>
+
+  <!-- Latest messages preview -->
+  <div v-show="!showMessagesOverlay" class="messages-preview">
+    <transition-group name="list">
+      <p
+        v-for="{ author, message, timestamp } in latestMessages"
+        :key="timestamp"
+        class="message"
+      >
+        <b :style="{ color: stringToColor(author) }" class="author">
+          {{ author }}:
+        </b>
+        {{ message }}
+      </p>
+    </transition-group>
+  </div>
+
+  <!-- Chat input -->
+  <input
+    ref="chatInputRef"
+    v-model="messageInput"
+    type="text"
+    class="chat-input"
+    @keydown.enter="sendMessage"
+    enterkeyhint="send"
+  />
+
   <!-- Server connection status -->
   <div class="status-icon">
     <app-server-status-icon />
@@ -100,7 +137,8 @@ watch(
 </template>
 
 <style scoped>
-button {
+.toggle-overlay-button {
+  z-index: 200;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -115,28 +153,38 @@ svg {
   height: 100%;
 }
 
+.chat-input {
+  z-index: 200;
+  position: absolute;
+  bottom: 5px;
+  left: 48px;
+}
+
 .messages-overlay {
+  z-index: 100;
+  display: flex;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  max-height: 100%;
+  height: calc(100% - 32px);
   overflow: auto;
 
-  padding-left: 48px;
+  padding-left: 12px;
+  padding-bottom: 32px;
 
   background-color: #000a;
 }
 
 .messages-overlay.scroll-container {
-  position: relative;
+  margin-top: auto;
   height: 100%;
 }
 
 .messages-preview {
   position: absolute;
-  bottom: 0;
-  left: 40px;
+  bottom: 32px;
+  left: 12px;
   right: 0;
 
   text-align: start;

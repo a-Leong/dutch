@@ -1,8 +1,11 @@
+import { Message } from "@/models/message";
+
 export type ClientCommand = {
   player: string;
   command:
     | { id: "connect-to-room" }
     | { id: "disconnect-from-room" }
+    | { id: "send-message"; text: string }
     | { id: "toggle-start" }
     | { id: "toggle-restart" }
     | { id: "toggle-end" }
@@ -77,6 +80,7 @@ export type GameState = {
   dutchCalledBy?: string; // player UID
   players: { [uid: string]: Player };
   commands: ClientCommand[];
+  latestPlayerMessage?: Message;
 };
 
 /**
@@ -98,4 +102,5 @@ export type ClientState = {
   dutchCalledBy?: string; // player UID
   players: (ClientPlayer & { uid: string })[];
   prevCommand?: ClientCommand; // To facilitate UI ? maybe not needed
+  latestPlayerMessage?: Message;
 };

@@ -148,6 +148,7 @@ export default function () {
       drawPile,
       drawnCard,
       players,
+      latestPlayerMessage: gameState.latestPlayerMessage,
       dutchCalledBy: gameState.dutchCalledBy,
     };
 
@@ -239,6 +240,9 @@ export default function () {
         player.hand.forEach((card) => (card.visibleTo = [])),
       ]);
 
+      // Reset chat before each command
+      gameState.latestPlayerMessage = undefined;
+
       switch (command.id) {
         case "connect-to-room": {
           if (gameState.players[player] === undefined) {
@@ -268,6 +272,16 @@ export default function () {
             // TODO: if no players or all remaining players are offline, save gamestate to Firestore to be resumed
           }
 
+          break;
+        }
+        case "send-message": {
+          const latestPlayerMessage = {
+            author: player,
+            message: command.text,
+            timestamp: new Date().toISOString(),
+          };
+
+          gameState.latestPlayerMessage = latestPlayerMessage;
           break;
         }
         case "toggle-start": {
@@ -467,6 +481,7 @@ export default function () {
         }
         case "replace-discard": {
           // TODO: If valid, process, else, throw error
+          // command.cardId
           break;
         }
         case "swap": {

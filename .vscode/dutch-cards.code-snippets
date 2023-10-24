@@ -65,7 +65,7 @@
     "description": "Debug-printing function for dutch-cards composables"
   },
   "dutch-cards-model": {
-    "scope": "typescript",
+    "scope": "javascript",
     "prefix": "type",
     "body": [
       "import { DB, FS } from \"@/models/_utils\";",

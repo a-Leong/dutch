@@ -1,11 +1,31 @@
-import { reactive, readonly, toRaw } from "vue";
+import { readonly, ref } from "vue";
 import { defineStore } from "pinia";
-// import { useDocument, useDatabaseObject } from "vuefire";
-// import { doc as firestoreDoc } from "firebase/firestore";
-// import { ref as databaseRef } from "firebase/database";
 
-// import { database, firestore } from "@/firebase-config";
+import { useSocketStore } from "@/stores/use-socket-store";
 
 export const useMessageStore = defineStore("message", () => {
-  return {};
+  /** @type {import("vue").Ref<import("@/models/message").Message[]>} */
+  const messages = ref([]);
+
+  /**
+   * @param {import("@/models/message").Message} message
+   */
+  function addLocalMessage(message) {
+    messages.value = [...messages.value, message];
+  }
+
+  /**
+   * @param {string} text
+   */
+  function addRemoteMessage(text) {
+    const socketStore = useSocketStore();
+    socketStore.sendCommand({ id: "send-message", text });
+  }
+
+  return {
+    messages: readonly(messages),
+
+    addLocalMessage,
+    addRemoteMessage,
+  };
 });

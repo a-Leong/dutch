@@ -90,7 +90,7 @@ export function generateDeck() {
 
   suits.forEach((suit) => {
     values.forEach((value) => {
-      const id = `card-${cardIds.pop() ?? cards.length}`;
+      const id = `${cardIds.pop() ?? cards.length}`;
       const pointValue = getPointValue(suit, value);
       const card = { id, suit, value, pointValue, visibleTo: [] };
       cards.push(card);

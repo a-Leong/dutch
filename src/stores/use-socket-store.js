@@ -1,8 +1,10 @@
 import { defineStore } from "pinia";
 import { readonly, ref } from "vue";
 
-import { useGameStore } from "@/stores/use-game-store";
 import router from "@/router";
+
+import { useGameStore } from "@/stores/use-game-store";
+import { useMessageStore } from "@/stores/use-message-store";
 
 const SERVER_RECONNECT_TIMEOUT = 1000 * 2;
 
@@ -18,10 +20,6 @@ export const useSocketStore = defineStore("server-socket", () => {
 
   const reconnectAttempts = ref(0);
   const timeoutId = ref();
-
-  // TODO: move to use-message-store for chating
-  /** @type {import("vue").Ref<import('@/models/message').Message[]>} */
-  const messages = ref([]);
 
   /**
    * @param { string } token
@@ -103,16 +101,22 @@ export const useSocketStore = defineStore("server-socket", () => {
    */
   function handleResponse(response) {
     const gameStore = useGameStore();
+    const messageStore = useMessageStore();
 
     switch (response.id) {
       case "update": {
-        gameStore.set(response.gameState);
+        const { gameState } = response;
+        gameStore.set(gameState);
+        if (gameState.latestPlayerMessage) {
+          messageStore.addLocalMessage(gameState.latestPlayerMessage);
+        }
+
         console.log("Server says:", response);
         break;
       }
       case "reject": {
-        const timestamp = new Date();
-        messages.value.push({
+        const timestamp = new Date().toISOString();
+        messageStore.addLocalMessage({
           author: "Server",
           message: response.reason,
           timestamp,
@@ -146,7 +150,6 @@ export const useSocketStore = defineStore("server-socket", () => {
 
   return {
     isConnected: readonly(isConnected),
-    messages: readonly(messages),
 
     init,
     deinit,
