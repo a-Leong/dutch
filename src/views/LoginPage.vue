@@ -9,8 +9,8 @@ import { ref } from "vue";
 
 import AppFlipCard from "@/components/AppFlipCard.vue";
 
-import jackSvg from "@/assets/Jack_of_spades_fr.svg";
-import queenSvg from "@/assets/Queen_of_hearts_fr.svg";
+import jackSvg from "@/assets/svg/Jack_of_spades_fr.svg";
+import queenSvg from "@/assets/svg/Queen_of_hearts_fr.svg";
 
 // Sign Up
 

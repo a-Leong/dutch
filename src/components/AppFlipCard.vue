@@ -1,7 +1,15 @@
 <script setup>
 import { ref } from "vue";
+import { whenever } from "@vueuse/core";
+import { useSound } from "@vueuse/sound";
+
+import flipCardSfx from "@/assets/audio/flip-card.mp3";
+
+const { play: playFlipCardSfx } = useSound(flipCardSfx, { volume: 0.2 });
 
 const flipped = ref(false);
+
+whenever(flipped, () => playFlipCardSfx());
 </script>
 
 <template>
@@ -33,11 +41,11 @@ const flipped = ref(false);
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: all 0.4s;
   border-radius: 2mm;
-
   box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+
+  transition: transform ease 0.25s;
 }
 
 .flip-card-inner-shadow {
@@ -46,7 +54,7 @@ const flipped = ref(false);
   top: 0;
   height: 100%;
   width: 100%;
-  transition: all 0.4s;
+  transition: background-position 0.4s;
 
   pointer-events: none;
 
