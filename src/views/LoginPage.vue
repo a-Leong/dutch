@@ -143,7 +143,7 @@ input {
 }
 
 .card {
-  margin: 40px 4px;
+  margin: 40px 8px;
 }
 
 .error {
