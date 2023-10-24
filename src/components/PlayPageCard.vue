@@ -46,19 +46,18 @@ const extendedCardName = computed(() => {
 
 <style scoped>
 .card {
+  width: 61mm;
+  height: 88mm;
+  border-radius: 2mm;
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+
   margin: 2px;
   display: flex;
   justify-content: center;
   align-items: center;
 
   cursor: pointer;
-  border: solid transparent 4px; /* prevents position change when .selected */
-  border-radius: 4px;
-  height: 150px;
-  aspect-ratio: 2.5 / 3.5;
-
-  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
-    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
 }
 
 .card.selected {
