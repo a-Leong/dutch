@@ -138,6 +138,10 @@ async function signIn() {
 </template>
 
 <style scoped>
+input {
+  width: 120px;
+}
+
 .card {
   margin: 40px 4px;
 }
@@ -150,7 +154,7 @@ async function signIn() {
   display: flex;
   flex-flow: column;
   align-items: end;
-  margin: 2px;
+  margin: 4px;
 }
 
 .login-page {

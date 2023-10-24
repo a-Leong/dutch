@@ -22,7 +22,8 @@ const flipped = ref(false);
 .flip-card {
   background-color: transparent;
   width: 61mm;
-  height: 88mm;
+
+  aspect-ratio: 61 / 88;
 
   perspective: 900px;
 }
@@ -56,7 +57,7 @@ const flipped = ref(false);
 }
 
 .flip-card:hover .flip-card-inner {
-  transform: rotateX(8deg) scaleY(0.9) translateY(10mm);
+  transform: rotateX(8deg) scaleY(0.9) translateY(10%);
 }
 
 .flip-card:hover .flip-card-inner-shadow {
