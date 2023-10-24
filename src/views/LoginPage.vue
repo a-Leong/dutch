@@ -31,7 +31,7 @@ async function signUp() {
 
     router.push({ name: "PlayPage" });
   } catch (error) {
-    signInError.value = error.message;
+    signUpError.value = error.message;
   }
 }
 
