@@ -31,7 +31,7 @@ async function signUp() {
 
     router.push({ name: "PlayPage" });
   } catch (error) {
-    signUpError.value = error;
+    signInError.value = error.message;
   }
 }
 
@@ -52,7 +52,7 @@ async function signIn() {
 
     console.log("Signed in user", user);
   } catch (error) {
-    signInError.value = error;
+    signInError.value = error.message;
   }
 }
 </script>
@@ -154,6 +154,7 @@ input {
   display: flex;
   flex-flow: column;
   align-items: end;
+  gap: 4px;
   margin: 4px;
 }
 

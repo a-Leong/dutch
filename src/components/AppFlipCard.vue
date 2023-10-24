@@ -1,24 +1,31 @@
 <script setup>
-import { ref } from "vue";
-import { whenever } from "@vueuse/core";
+import { ref, watch } from "vue";
 import { useSound } from "@vueuse/sound";
 
 import flipCardSfx from "@/assets/audio/flip-card.mp3";
+import placeCardSfx from "@/assets/audio/place-card.mp3";
 
 const { play: playFlipCardSfx } = useSound(flipCardSfx, { volume: 0.2 });
+const { play: playPlaceCardSfx } = useSound(placeCardSfx, { volume: 0.1 });
 
 const flipped = ref(false);
 
-whenever(flipped, () => playFlipCardSfx());
+watch(flipped, () => (flipped.value ? playFlipCardSfx() : playPlaceCardSfx()));
 </script>
 
 <template>
   <div class="flip-card" @click="flipped = !flipped">
-    <div :class="['flip-card-inner', { flipped }]">
+    <div
+      :class="['flip-card-inner', { flipped }]"
+      tabindex="0"
+      @keydown.enter="flipped = true"
+      @keydown.space="flipped = true"
+      @keydown.esc="flipped = false"
+    >
       <div class="flip-card-front">
         <slot name="front" />
       </div>
-      <div class="flip-card-back">
+      <div v-show="flipped" class="flip-card-back">
         <slot name="back" />
       </div>
       <div class="flip-card-inner-shadow"></div>
@@ -28,6 +35,7 @@ whenever(flipped, () => playFlipCardSfx());
 
 <style scoped>
 .flip-card {
+  cursor: pointer;
   background-color: transparent;
   width: 61mm;
 
