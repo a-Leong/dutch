@@ -5,7 +5,7 @@ const { query } = useRoute();
 </script>
 
 <template>
-  <div>
+  <div class="error-page">
     <!-- https://api.iconify.design/clarity:error-line.svg -->
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -37,4 +37,14 @@ const { query } = useRoute();
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.error-page {
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+</style>
