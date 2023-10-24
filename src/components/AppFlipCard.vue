@@ -2,15 +2,23 @@
 import { ref, watch } from "vue";
 import { useSound } from "@vueuse/sound";
 
+import { useSettingsStore } from "@/stores/use-settings-store";
+
 import flipCardSfx from "@/assets/audio/flip-card.mp3";
 import placeCardSfx from "@/assets/audio/place-card.mp3";
+
+const settingsStore = useSettingsStore();
 
 const { play: playFlipCardSfx } = useSound(flipCardSfx, { volume: 0.2 });
 const { play: playPlaceCardSfx } = useSound(placeCardSfx, { volume: 0.1 });
 
 const flipped = ref(false);
 
-watch(flipped, () => (flipped.value ? playFlipCardSfx() : playPlaceCardSfx()));
+watch(flipped, () => {
+  if (settingsStore.audioEnabled) {
+    flipped.value ? playFlipCardSfx() : playPlaceCardSfx();
+  }
+});
 </script>
 
 <template>

@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { ref } from "vue";
 
+import AppAudioEnabledButton from "@/components/AppAudioEnabledButton.vue";
 import AppFlipCard from "@/components/AppFlipCard.vue";
 
 import jackSvg from "@/assets/svg/Jack_of_spades_fr.svg";
@@ -134,12 +135,21 @@ async function signIn() {
         </div>
       </template>
     </app-flip-card>
+
+    <app-audio-enabled-button class="toggle-audio-button" />
   </div>
 </template>
 
 <style scoped>
 input {
   width: 120px;
+}
+
+.toggle-audio-button {
+  z-index: 200;
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
 
 .card {
