@@ -3,7 +3,7 @@ import { RouterView } from "vue-router";
 import { ref } from "vue";
 import { onAuthStateChanged } from "firebase/auth";
 
-import router from "@/router";
+import router, { ERROR_PAGE, LOGIN_PAGE, PLAY_PAGE } from "@/router";
 import { auth } from "@/firebase-config";
 
 import AppLoadingPage from "@/components/AppLoadingPage.vue";
@@ -24,19 +24,19 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
       // User has existing auth session or just signed in
       const token = await user.getIdToken();
-      await router.push({ name: "PlayPage" });
+      await router.push({ name: PLAY_PAGE });
       await socketStore.init(token);
     } else {
       // User does not have existing auth session or just signed out
       gameStore.deinit();
       socketStore.deinit();
-      await router.push({ name: "LoginPage" });
+      await router.push({ name: LOGIN_PAGE });
     }
 
     await wait(0); // Add delay to increase loading page duration
   } catch (error) {
     await router.push({
-      name: "ErrorPage",
+      name: ERROR_PAGE,
       query: { msg: error.message },
     });
   } finally {

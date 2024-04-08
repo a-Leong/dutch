@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { auth } from "@/firebase-config";
 
-export const ERROR_PATH = "/error";
-export const LOGIN_PATH = "/login";
-export const PLAY_PATH = "/play";
+export const ERROR_PAGE = "error";
+export const LOGIN_PAGE = "login";
+export const PLAY_PAGE = "play";
 
 const routes = [
   {
@@ -11,24 +11,24 @@ const routes = [
     redirect: "/login",
   },
   {
-    path: LOGIN_PATH,
-    name: "LoginPage",
+    path: "/login",
+    name: LOGIN_PAGE,
     component: () => import("@/views/LoginPage.vue"),
   },
   {
-    path: ERROR_PATH,
-    name: "ErrorPage",
+    path: "/error",
+    name: ERROR_PAGE,
     component: () => import("@/views/ErrorPage.vue"),
   },
   {
-    path: PLAY_PATH,
-    name: "PlayPage",
+    path: "/play",
+    name: PLAY_PAGE,
     component: () => import("@/views/PlayPage.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/:catchAll(.*)*",
-    redirect: LOGIN_PATH,
+    redirect: "/login",
   },
 ];
 
@@ -42,9 +42,9 @@ router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
 
   if (requiresAuth && !currentUser) {
-    next(LOGIN_PATH);
-  } else if (currentUser && to.path === LOGIN_PATH) {
-    next(PLAY_PATH);
+    next({ name: LOGIN_PAGE });
+  } else if (currentUser && to.name === LOGIN_PAGE) {
+    next({ name: PLAY_PAGE });
   } else {
     next();
   }

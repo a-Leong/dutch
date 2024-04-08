@@ -1,6 +1,6 @@
 <script setup>
 import { auth } from "@/firebase-config";
-import router from "@/router";
+import router, { PLAY_PAGE } from "@/router";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -30,7 +30,7 @@ async function signUp() {
 
     console.log("Created user", user);
 
-    router.push({ name: "PlayPage" });
+    router.push({ name: PLAY_PAGE });
   } catch (error) {
     signUpError.value = error.message;
   }

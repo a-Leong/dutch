@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { readonly, ref } from "vue";
 
-import router from "@/router";
+import router, { ERROR_PAGE } from "@/router";
 
 import { useGameStore } from "@/stores/use-game-store";
 import { useMessageStore } from "@/stores/use-message-store";
@@ -31,7 +31,7 @@ export const useSocketStore = defineStore("server-socket", () => {
     if (nextReconnectDelay > SERVER_RECONNECT_TIMEOUT) {
       clearTimeout(timeoutId.value);
       await router.push({
-        name: "ErrorPage",
+        name: ERROR_PAGE,
         query: {
           msg: "Timeout: server appears to be unavailable.",
         },
@@ -74,7 +74,7 @@ export const useSocketStore = defineStore("server-socket", () => {
         if (response.code === 3000 || response.code === 3001) {
           // Server told me request or auth UID was bad; stop retrying
           router.push({
-            name: "ErrorPage",
+            name: ERROR_PAGE,
             query: { msg: response.reason },
           });
         } else {
