@@ -47,10 +47,11 @@ const extendedCardName = computed(() => {
 <style scoped>
 .card {
   width: 61mm;
-  height: 88mm;
+  height: 86mm;
   border-radius: 2mm;
   box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+  border-bottom: solid transparent 2mm;
 
   margin: 2px;
   display: flex;
@@ -61,6 +62,6 @@ const extendedCardName = computed(() => {
 }
 
 .card.selected {
-  border-bottom: solid blue 4px;
+  border-bottom: solid #1c1585 2mm;
 }
 </style>

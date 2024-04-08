@@ -102,7 +102,7 @@ function swap() {
     <section v-if="game.phase === 'pregame'">
       <h1>
         {{
-          player?.status !== "start"
+          player?.status !== "start" && game.players?.length !== 1
             ? "ready for dutch?"
             : "waiting for others..."
         }}
