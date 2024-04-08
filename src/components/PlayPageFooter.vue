@@ -84,6 +84,16 @@ function sendMessage() {
     </svg>
   </button>
 
+  <!-- Chat input -->
+  <input
+    ref="chatInputRef"
+    v-model="messageInput"
+    type="text"
+    class="chat-input"
+    @keydown.enter="sendMessage"
+    enterkeyhint="send"
+  />
+
   <div v-show="showMessagesOverlay" ref="overlayRef" class="messages-overlay">
     <!-- All message -->
     <transition-group
@@ -123,16 +133,6 @@ function sendMessage() {
       </p>
     </transition-group>
   </div>
-
-  <!-- Chat input -->
-  <input
-    ref="chatInputRef"
-    v-model="messageInput"
-    type="text"
-    class="chat-input"
-    @keydown.enter="sendMessage"
-    enterkeyhint="send"
-  />
 
   <!-- Server connection status -->
   <div class="status-icon">
