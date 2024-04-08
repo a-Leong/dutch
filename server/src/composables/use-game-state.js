@@ -130,9 +130,10 @@ export default function () {
     });
 
     // Expose drawn card to clients
-    let drawnCard;
+    /** @type {import('@/models/game-state.js').ClientDrawnCard} */
+    let drawnCard = null;
     gameState.actionQueue.forEach((action) => {
-      if (action !== undefined && action.effect.id === "discard") {
+      if (action !== undefined && action.effect.id === "replace-discard") {
         drawnCard =
           action.player === player
             ? toFaceUp(action.effect.cardId)
@@ -204,7 +205,7 @@ export default function () {
 
     Object.keys(gameState.players).forEach((uid) => {
       gameState.players[uid].hand = [];
-      gameState.players[uid].status = "start";
+      gameState.players[uid].status = "wait";
     });
 
     let newStartingPlayer;
@@ -227,6 +228,52 @@ export default function () {
     gameState.drawPile = [];
 
     return newStartingPlayer;
+  }
+
+  /**
+   * Draws a card from the draw pile.
+   * If the draw pile is empty, shuffles the discard pile and sets it as the new draw pile.
+   * @returns {import("@/models/game-state").Card} The drawn card.
+   * @throws {Error} If the draw pile is empty.
+   */
+  function drawCard() {
+    const drawnCard = gameState.drawPile.pop();
+
+    if (drawnCard === undefined) {
+      throw new Error(
+        "Draw pile is empty (something went wrong! deck should automatically replenish from discard pile when empty)"
+      );
+    }
+
+    if (gameState.drawPile.length === 0) {
+      // Drew last card in draw pile, shuffle discard pile for draw pile
+      const discardPileTopCard =
+        /** @type {import("@/models/game-state").Card} */ (
+          gameState.discardPile.pop()
+        );
+
+      const newDrawPile = shuffleCards(gameState.discardPile);
+      gameState.discardPile = [discardPileTopCard];
+      gameState.drawPile = newDrawPile;
+    }
+
+    return drawnCard;
+  }
+
+  /**
+   * Advances the turn to the next player.
+   * @throws {Error} If the game hasn't started yet.
+   */
+  function nextPlayerTurn() {
+    if (gameState.activePlayerUid === undefined) {
+      throw new Error("Game hasn't started");
+    }
+
+    const activePlayerPosition =
+      gameState.players[gameState.activePlayerUid].position;
+    const nextPlayerPosition =
+      (activePlayerPosition + 1) % playersArray.value.length;
+    gameState.activePlayerUid = playersArray.value[nextPlayerPosition].uid;
   }
 
   /**
@@ -387,7 +434,7 @@ export default function () {
 
           gameState.actionQueue.push({
             player,
-            effect: { id: "discard", cardId: drawnCard.id },
+            effect: { id: "replace-discard", cardId: drawnCard.id },
           });
 
           break;
@@ -405,28 +452,13 @@ export default function () {
             throw new Error("Must wait for all actions to complete");
           }
 
-          const drawnCard = gameState.drawPile.pop();
-
-          if (drawnCard === undefined) {
-            throw new Error("Draw pile is empty");
-          }
+          const drawnCard = drawCard();
 
           gameState.actionQueue.push({
             player,
-            effect: { id: "discard", cardId: drawnCard.id },
+            effect: { id: "replace-discard", cardId: drawnCard.id },
           });
 
-          if (gameState.drawPile.length === 0) {
-            // Drew last card in draw pile, shuffle discard pile for draw pile
-            const discardPileTopCard =
-              /** @type {import("@/models/game-state").Card} */ (
-                gameState.discardPile.pop()
-              );
-
-            const newDrawPile = shuffleCards(gameState.discardPile);
-            gameState.discardPile = [discardPileTopCard];
-            gameState.drawPile = newDrawPile;
-          }
           break;
         }
         case "match-discard": {
@@ -446,9 +478,11 @@ export default function () {
           }
 
           // Remove card from player's hand
-          gameState.players[player].hand = gameState.players[
-            player
-          ].hand.filter((card) => card.id !== command.cardId);
+          const removedCardIndex = gameState.players[player].hand.findIndex(
+            (card) => card.id === command.cardId
+          );
+
+          gameState.players[player].hand.splice(removedCardIndex, 1);
 
           const discardedCard = toCard(command.cardId);
 
@@ -457,6 +491,11 @@ export default function () {
           if (effect !== undefined) {
             // Card has effect
             gameState.actionQueue.push({ player, effect });
+
+            if (effect.id === "peek") {
+              // Add de-peek action to action queue
+              gameState.actionQueue.push({ player, effect: { id: "de-peek" } });
+            }
           }
 
           if (
@@ -466,7 +505,16 @@ export default function () {
             // Discard doesn't match
             gameState.actionQueue.push({
               player,
-              effect: { id: "blind-draw" },
+              effect: { id: "blind-draw", cardIndex: removedCardIndex },
+            });
+
+            Object.keys(gameState.players).forEach((playerId) => {
+              if (playerId !== player) {
+                gameState.actionQueue.push({
+                  player: playerId,
+                  effect: { id: "confirm-blind-draw", player },
+                });
+              }
             });
           }
 
@@ -476,20 +524,243 @@ export default function () {
           break;
         }
         case "peek": {
-          // TODO: If valid, process, else, throw error
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Cannot peek");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Cannot peek");
+          }
+
+          if (gameState.actionQueue[0].player !== player) {
+            throw new Error("Not your turn");
+          }
+
+          if (gameState.actionQueue[0].effect.id !== "peek") {
+            throw new Error("Cannot peek");
+          }
+
+          gameState.players[player].hand.forEach((card) => {
+            if (card.id === command.cardId) {
+              card.visibleTo.push(player);
+            }
+          });
+
+          gameState.actionQueue.shift();
+
+          // TODO: Set timeout to auto de-peek
+
+          break;
+        }
+        case "de-peek": {
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Cannot finish peeking");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Cannot finish peeking");
+          }
+
+          if (gameState.actionQueue[0].player !== player) {
+            throw new Error("Not your turn");
+          }
+
+          if (gameState.actionQueue[0].effect.id !== "de-peek") {
+            throw new Error("Cannot finish peeking");
+          }
+
+          gameState.players[player].hand.forEach((card) => {
+            card.visibleTo = [];
+          });
+
+          gameState.actionQueue.shift();
+
           break;
         }
         case "replace-discard": {
-          // TODO: If valid, process, else, throw error
-          // command.cardId
+          // TODO: Throw error if attempting to replace discard after drawing from the discard pile
+
+          const currentAction = gameState.actionQueue[0];
+
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.activePlayerUid !== player) {
+            throw new Error("Not your turn");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Cannot replace discard");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Cannot replace discard");
+          }
+
+          if (currentAction.player !== player) {
+            throw new Error("Cannot replace discard");
+          }
+
+          if (currentAction.effect.id !== "replace-discard") {
+            throw new Error("Cannot replace discard");
+          }
+
+          const playerHand = gameState.players[player].hand;
+
+          const cardInHandIndex = playerHand.findIndex(
+            (card) => card.id === command.cardId
+          );
+
+          if (cardInHandIndex !== -1) {
+            gameState.players[player].hand = playerHand
+              .slice(0, cardInHandIndex)
+              .concat(
+                toCard(currentAction.effect.cardId),
+                playerHand.slice(cardInHandIndex + 1)
+              );
+          }
+
+          gameState.discardPile.push(toCard(command.cardId));
+
+          gameState.actionQueue.shift();
+
+          // TODO: Evaluate if any action should be added to the action queue by the discarded card
+
+          nextPlayerTurn();
+
           break;
         }
         case "swap": {
-          // TODO: If valid, process, else, throw error
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Cannot swap cards");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Cannot swap cards");
+          }
+
+          if (gameState.actionQueue[0].player !== player) {
+            throw new Error("Not your turn");
+          }
+
+          if (gameState.actionQueue[0].effect.id !== "swap") {
+            throw new Error("Cannot swap cards");
+          }
+
+          /** @type {{card: import("@/models/game-state").Card, playerId: string, index: number} | undefined} */
+          let swap1;
+
+          /** @type {{card: import("@/models/game-state").Card, playerId: string, index: number} | undefined} */
+          let swap2;
+
+          Object.entries(gameState.players).forEach(([playerId, { hand }]) =>
+            hand.forEach((card, index) => {
+              if (card.id === command.card1Id) {
+                swap1 = { playerId, card, index };
+              } else if (card.id === command.card2Id) {
+                swap2 = { playerId, card, index };
+              }
+            })
+          );
+
+          if (swap1 && swap2) {
+            const temp = gameState.players[swap1.playerId].hand[swap1.index];
+            gameState.players[swap1.playerId].hand[swap1.index] =
+              gameState.players[swap2.playerId].hand[swap2.index];
+            gameState.players[swap2.playerId].hand[swap2.index] = temp;
+          }
+
+          gameState.actionQueue.shift();
           break;
         }
         case "blind-draw": {
-          // TODO: If valid, process, else, throw error
+          const currentAction = gameState.actionQueue[0];
+
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Don't need to blind draw");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Don't need to blind draw");
+          }
+
+          if (currentAction.player !== player) {
+            throw new Error("Don't need to blind draw");
+          }
+
+          if (currentAction.effect.id !== "blind-draw") {
+            throw new Error("Don't need to blind draw");
+          }
+
+          const drawnCard = drawCard();
+
+          drawnCard.visibleTo = Object.keys(gameState.players).filter(
+            (playerId) => playerId !== player
+          );
+
+          const playerHand = gameState.players[player].hand;
+
+          gameState.players[player].hand = playerHand
+            .slice(0, currentAction.effect.cardIndex)
+            .concat(
+              drawnCard,
+              playerHand.slice(currentAction.effect.cardIndex)
+            );
+
+          gameState.actionQueue.shift();
+
+          break;
+        }
+        case "confirm-blind-draw": {
+          const currentAction = gameState.actionQueue[0];
+
+          if (gameState.phase !== "ingame") {
+            throw new Error("Game hasn't started");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Don't need to confirm blind draw");
+          }
+
+          if (gameState.actionQueue.length === 0) {
+            throw new Error("Don't need to confirm blind draw");
+          }
+
+          if (currentAction.player === player) {
+            throw new Error("Don't need to confirm blind draw");
+          }
+
+          if (currentAction.effect.id !== "confirm-blind-draw") {
+            throw new Error("Don't need to confirm blind draw");
+          }
+
+          gameState.players[currentAction.effect.player].hand.forEach(
+            (card) => {
+              card.visibleTo = card.visibleTo.filter(
+                (playerId) => playerId !== player
+              );
+            }
+          );
+
+          gameState.actionQueue.shift();
+
           break;
         }
       }

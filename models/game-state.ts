@@ -14,8 +14,10 @@ export type ClientCommand = {
     | { id: "replace-discard"; cardId: string }
     | { id: "match-discard"; cardId: string }
     | { id: "peek"; cardId: string }
+    | { id: "de-peek" }
     | { id: "swap"; card1Id: string; card2Id: string }
     | { id: "blind-draw" }
+    | { id: "confirm-blind-draw" }
     | { id: "call-dutch" };
 };
 
@@ -46,10 +48,12 @@ export type FaceDownCard = Pick<Card, "id"> & { orientation: "down" };
 export type Action = {
   player: string;
   effect:
-    | { id: "discard"; cardId: string }
+    | { id: "replace-discard"; cardId: string }
     | { id: "peek" }
+    | { id: "de-peek" }
     | { id: "swap" }
-    | { id: "blind-draw" };
+    | { id: "blind-draw"; cardIndex: number }
+    | { id: "confirm-blind-draw"; player: string };
 };
 
 export type Player = {
@@ -83,6 +87,8 @@ export type GameState = {
   latestPlayerMessage?: Message;
 };
 
+export type ClientDrawnCard = FaceUpCard | FaceDownCard | null;
+
 /**
  * Client-accessible, player-specific state necessary for rendering UI
  */
@@ -98,7 +104,7 @@ export type ClientState = {
     topCard?: FaceDownCard;
     count: number;
   };
-  drawnCard?: FaceUpCard | FaceDownCard;
+  drawnCard: ClientDrawnCard;
   dutchCalledBy?: string; // player UID
   players: (ClientPlayer & { uid: string })[];
   prevCommand?: ClientCommand; // To facilitate UI ? maybe not needed
