@@ -136,7 +136,6 @@ function swap() {
           </label>
           <play-page-card
             :card="game.drawnCard"
-            :key="game.drawnCard.id"
             :selected="selectedCards.includes(game.drawnCard.id)"
             @click="toggleCardSelected(game.drawnCard.id)"
             @keydown.enter="toggleCardSelected(game.drawnCard.id)"
@@ -148,7 +147,6 @@ function swap() {
           <play-page-card
             v-if="game.drawPile?.topCard"
             :card="game.drawPile.topCard"
-            :key="game.drawPile.topCard.id"
           />
         </div>
 
@@ -157,7 +155,6 @@ function swap() {
           <play-page-card
             v-if="game.discardPile?.topCard"
             :card="game.discardPile.topCard"
-            :key="game.discardPile.topCard.id"
           />
         </div>
       </section>
@@ -172,7 +169,6 @@ function swap() {
           <play-page-card
             v-for="card in p.hand"
             v-bind="{ card }"
-            :key="card.id"
             :selected="selectedCards.includes(card.id)"
             @click="toggleCardSelected(card.id)"
             @keydown.enter="toggleCardSelected(card.id)"

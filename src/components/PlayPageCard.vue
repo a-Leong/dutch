@@ -39,7 +39,7 @@ const extendedCardName = computed(() => {
 </script>
 
 <template>
-  <div tabindex="0" :class="['card', { selected }]">
+  <div :key="card.id" tabindex="0" :class="['card', { selected }]">
     <label>{{ extendedCardName }}</label>
   </div>
 </template>
